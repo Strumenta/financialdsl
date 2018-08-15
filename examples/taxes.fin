@@ -1,0 +1,28 @@
+company type SRL
+
+tax IRES on SRL {
+	taxable:  gross_profit
+	{year 2017-} rate: 27.5%
+	{year 2018+} rate: 24%
+}
+
+tax IRAP on SRL {
+	taxable:  net_production
+	{region=Piedmont} rate: 3.9%
+}
+
+tax IRPEF on person {
+	rate: national_rate + regional_rate + town_rate
+	national_rate = brackets [to 15K] -> 23%,
+							 [to 28K] -> 27%,
+							 [to 55K] -> 38%,
+							 [to 75K] -> 41%,
+							 [above]  -> 43%
+	{town=Torino} town_rate = brackets [to 11,670] -> 0%
+                                       [above] -> 0.8%
+	{region=Piedmont} regional_rate = brackets [to 15K] -> 1.62%,
+											   [to 28K] -> 2.13%,
+											   [to 55K] -> 2.75%,
+											   [to 75K] -> 3.32%,
+											   [above]  -> 3.33%								   											   
+}
