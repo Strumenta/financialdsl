@@ -17,13 +17,17 @@ ON                 : 'on';
 PERSON             : 'person' ;
 IS                 : 'is' ;
 AMOUNT             : 'amount' ;
+AT                 : 'at' ;
+PARAMETER          : 'parameter' ;
+SUM                : 'sum' ;
 
 // Identifiers
 ID                 : [A-Za-z][A-Za-z0-9_]* ;
 
 // Literals
 INTLIT             : '0'|[1-9][0-9]* ;
-DECLIT             : '0'|[1-9][0-9]* '.' [0-9]+ ;
+DECLIT             : ('0'|[1-9][0-9]*) '.' [0-9]+ ;
+PERCLIT            : ('0'|[1-9][0-9]*) ('.' [0-9]+)? '%' ;
 
 // Operators
 PLUS               : '+' ;
@@ -35,6 +39,10 @@ LPAREN             : '(' ;
 RPAREN             : ')' ;
 LBRACE             : '{' ;
 RBRACE             : '}' ;
+LSQUARE            : '[' ;
+RSQUARE            : ']' ;
 COLON              : ':' ;
+COMMA              : ',' ;
+IN_ARROW           : '<-' ;
 
 UNMATCHED          : . ;
