@@ -1,21 +1,22 @@
 package com.strumenta.financialdsl
 
-import org.antlr.v4.kotlinruntime.CharStream
 import org.antlr.v4.kotlinruntime.CharStreams
 import org.antlr.v4.kotlinruntime.CommonTokenStream
-import java.nio.file.Path
-import java.nio.file.Paths
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class ParsingTest {
 
-    @Test
-    fun parseCompanyTypes() {
-        val inputStream = ParsingTest::class.java.getResourceAsStream("/company_types.fin")
-        println("IS $inputStream")
-        val input = CharStreams.fromStream(inputStream)
+    private fun assertParsedWithoutErrors(exampleName: String) : FinancialDSLParser.FinancialDSLFileContext {
+        val input = CharStreams.fromFileName("src/test/resources/$exampleName.fin")
         val lexer = FinancialDSLLexer(input)
         var parser = FinancialDSLParser(CommonTokenStream(lexer))
-        val root = parser.financialDSLFile()
+        return parser.financialDSLFile()
+    }
+
+    @Test
+    fun parseCompanyTypes() {
+        val root = assertParsedWithoutErrors("company_types")
+        assertEquals(1, root.declarations.size)
     }
 }
