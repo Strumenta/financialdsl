@@ -1,0 +1,5 @@
+Federico is person {
+    {before July 2018} net_compensation = 0 monthly
+    {since July 2018} net_compensation = 2K monthly
+    gross_compensation = net_compensation {contributes to personnel_costs of Strumenta}
+}
