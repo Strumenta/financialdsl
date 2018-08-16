@@ -13,7 +13,7 @@ topLevelDeclaration : companyTypeDeclaration #companyTypeDecl
 entityDeclaration : name=ID IS target=entityType LBRACE (stmts+=entityDeclarationStmt)* RBRACE
                   ;
 
-entityDeclarationStmt : name=ID IS type (EQUAL value=expression)?
+entityDeclarationStmt : (limit=limitDefinition)? name=ID (IS type)? ((EQUAL value=expression)|(IN_ARROW PARAMETER)|(IN_ARROW SUM))?
                       ;
 
 companyTypeDeclaration : COMPANY TYPE name=ID LBRACE (stmts+=companyTypeDeclarationStmt)* RBRACE
@@ -31,8 +31,11 @@ taxDeclaration : TAX ON target=entityType LBRACE (stmts+=taxDeclarationStmt)* RB
 taxDeclarationStmt : (limit=limitDefinition)? field=ID COLON value=expression
                    ;
 
-limitDefinition : LBRACE RBRACE
+limitDefinition : LBRACE (BEFORE|AFTER) date RBRACE
                 ;
+
+date : MONTH year=INTLIT
+     ;
 
 expression : expression PLUS expression #sumExpr
            | LSQUARE (entries+=mapEntry (COMMA entries+=mapEntry)*)? RSQUARE #mapExpr

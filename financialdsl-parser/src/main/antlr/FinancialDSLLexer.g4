@@ -20,6 +20,10 @@ AMOUNT             : 'amount' ;
 AT                 : 'at' ;
 PARAMETER          : 'parameter' ;
 SUM                : 'sum' ;
+MONTH            : 'january' | 'february' | 'march' | 'april' | 'may' | 'june' | 'july' | 'august' | 'september' | 'october' | 'november' | 'december' ;
+BEFORE : 'before' ;
+AFTER : 'after' ;
+PERIODICITY : 'monthly' | 'weekly' | 'yearly' ;
 
 // Identifiers
 ID                 : [A-Za-z][A-Za-z0-9_]* ;
