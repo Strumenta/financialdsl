@@ -1,9 +1,67 @@
-company type SRL
+//
+// Definitions
+//
+
+company type SRL {
+    gross_profit is amount
+    net_production is amount: gross_profit + personnel_costs
+    personnel_costs is amount
+}
+/*
+//
+// Configuration
+//
+
+Strumenta is SRL {
+    owners: [Federico at 66%, Gabriele at 34%]
+    gross_profit is amount: parameter
+    personnel_costs is amount: sum
+}
+
+Federico is person {
+    {before July 2018} net_compensation: 0 monthly
+    {since July 2018} net_compensation: 2K monthly
+    gross_compensation: net_compensation, contributes to Strumenta's personnel_costs
+// I contributi in questo caso sono dovuti sul reddito conseguito dall’amministratore e sono per 1/3 a carico
+// dell’amministratore e per 2/3 a carico della società. La misura di tali contributi per il 2015 è pari al 23,50%
+// se l’amministratore è titolare di pensione o iscritto ad altra cassa di previdenza o del 30,72% se l’amministratore
+// non iscritto ad altra cassa di previdenza.
+
+    //income: compensation * 12 + Strumenta's net_profit * Strumenta's share of this
+}
+
+Gabriele is person {
+    {before July 2018} net_compensation: 0 monthly
+    {since July 2018} net_compensation: 1K monthly
+    net_compensation contributes to Strumenta's personnel_costs
+    //gross_compensation: net_compensation
+    //income: compensation * 12 + Strumenta's net_profit * Strumenta's share of this
+}*/
+
+/*
+configuration {
+    Federico is person {
+        compensation: 2K
+        income: compensation * 12 + Strumenta's net_profit * Strumenta's share of this
+    }
+    Gabriele is person {
+        compensation: 1K
+        income: compensation * 12 + Strumenta's net_profit * Strumenta's share of this
+    }
+    Strumenta is SRL {
+        owners: [Federico at 66%, Gabriele at 34%]
+        gross_profit: parameter
+        personnel_costs: Federico's compensation * 12 + Gabriele's compensation * 12
+        net_production: parameter
+    }
+}
 
 tax IRES on SRL {
-	taxable:  gross_profit
-	{year 2017-} rate: 27.5%
-	{year 2018+} rate: 24%
+    // In maniera grossolana ma abbastanza precisa si può calcolare che l'utile tassabile è circa il 20% più grande
+    // dell'utile lordo.
+	taxable:  gross_profit * 120%
+	{year=2017-} rate: 27.5%
+	{year=2018+} rate: 24%
 }
 
 tax IRAP on SRL {
@@ -12,6 +70,7 @@ tax IRAP on SRL {
 }
 
 tax IRPEF on person {
+    taxable: income
 	rate: national_rate + regional_rate + town_rate
 	national_rate = brackets [to 15K] -> 23%,
 							 [to 28K] -> 27%,
@@ -26,3 +85,4 @@ tax IRPEF on person {
 											   [to 75K] -> 3.32%,
 											   [above]  -> 3.33%								   											   
 }
+*/

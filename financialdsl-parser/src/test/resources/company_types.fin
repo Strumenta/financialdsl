@@ -1,0 +1,9 @@
+//
+// Definitions
+//
+
+company type SRL {
+    gross_profit is amount
+    net_production is amount: gross_profit + personnel_costs
+    personnel_costs is amount
+}
