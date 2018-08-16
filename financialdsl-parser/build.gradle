@@ -31,10 +31,10 @@ dependencies {
 
 task('ensureGeneratedSrcAntlrExist') {
     doLast {
-        def folder = new File( 'generated-src/antlr/' )
+        def folder = new File( 'financialdsl-parser/generated-src/antlr/' )
         if( !folder.exists() ) {
             println("Creating directory $folder")
-            folder.mkdirs()
+            //folder.mkdirs()
         }
     }
 }
