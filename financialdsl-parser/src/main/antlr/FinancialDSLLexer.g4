@@ -1,9 +1,12 @@
 lexer grammar FinancialDSLLexer;
 
-channels { WHITESPACE }
+channels { WHITESPACE, COMMENTS }
+
+// Comments
+LINE_COMMENT       : '//' (~[\r\n])* -> channel(COMMENTS) ;
 
 // Whitespace
-NEWLINE            : '\r\n' | '\r' | '\n' ;
+NEWLINE            : ('\r\n' | '\r' | '\n') -> channel(WHITESPACE) ;
 WS                 : [\t ]+ -> channel(WHITESPACE) ;
 
 // Keywords
@@ -12,9 +15,11 @@ TYPE               : 'type' ;
 TAX                : 'tax' ;
 ON                 : 'on';
 PERSON             : 'person' ;
+IS                 : 'is' ;
+AMOUNT             : 'amount' ;
 
 // Identifiers
-ID                 : [_]*[a-z][A-Za-z0-9_]* ;
+ID                 : [A-Za-z][A-Za-z0-9_]* ;
 
 // Literals
 INTLIT             : '0'|[1-9][0-9]* ;
@@ -25,7 +30,7 @@ PLUS               : '+' ;
 MINUS              : '-' ;
 ASTERISK           : '*' ;
 DIVISION           : '/' ;
-ASSIGN             : '=' ;
+EQUAL              : '=' ;
 LPAREN             : '(' ;
 RPAREN             : ')' ;
 LBRACE             : '{' ;

@@ -9,10 +9,16 @@ topLevelDeclaration : companyTypeDeclaration #companyTypeDecl
                     | taxDeclaration #taxDecl
                     ;
 
-companyTypeDeclaration : COMPANY TYPE name=ID
+companyTypeDeclaration : COMPANY TYPE name=ID LBRACE (stmts+=companyTypeDeclarationStmt)* RBRACE
                        ;
 
-taxDeclaration : TAX ON target=entity LBRACE stmts+=taxDeclarationStmt RBRACE
+companyTypeDeclarationStmt : name=ID IS type (EQUAL value=expression)?
+                           ;
+
+type : AMOUNT
+     ;
+
+taxDeclaration : TAX ON target=entity LBRACE (stmts+=taxDeclarationStmt)* RBRACE
                ;
 
 taxDeclarationStmt : (limit=limitDefinition)? field=ID COLON value=expression
@@ -21,7 +27,8 @@ taxDeclarationStmt : (limit=limitDefinition)? field=ID COLON value=expression
 limitDefinition : LBRACE RBRACE
                 ;
 
-expression : ID #referenceExpr
+expression : expression PLUS expression #sumExpr
+           | ID #referenceExpr
            ;
 
 entity : ID #companyTypeEntity
