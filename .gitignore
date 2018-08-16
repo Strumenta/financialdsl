@@ -4,3 +4,4 @@
 financialdsl-parser/src/main/antlr/FinancialDSLLexer.tokens
 build
 generated-src
+.DS_Store
