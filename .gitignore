@@ -2,3 +2,5 @@
 .idea
 *.iml
 financialdsl-parser/src/main/antlr/FinancialDSLLexer.tokens
+build
+generated-src
