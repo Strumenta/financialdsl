@@ -23,14 +23,18 @@ SUM                : 'sum' ;
 MONTH            : 'january' | 'february' | 'march' | 'april' | 'may' | 'june' | 'july' | 'august' | 'september' | 'october' | 'november' | 'december' ;
 BEFORE : 'before' ;
 AFTER : 'after' ;
+SINCE : 'since' ;
 PERIODICITY : 'monthly' | 'weekly' | 'yearly' ;
+CONTRIBUTES : 'contributes' ;
+TO : 'to' ;
+OF : 'of' ;
 
 // Identifiers
 ID                 : [A-Za-z][A-Za-z0-9_]* ;
 
 // Literals
-INTLIT             : '0'|[1-9][0-9]* ;
-DECLIT             : ('0'|[1-9][0-9]*) '.' [0-9]+ ;
+INTLIT             : '0'|[1-9][0-9]*('K'|'M')? ;
+DECLIT             : ('0'|[1-9][0-9]*) '.' [0-9]+('K'|'M')? ;
 PERCLIT            : ('0'|[1-9][0-9]*) ('.' [0-9]+)? '%' ;
 
 // Operators
@@ -48,5 +52,6 @@ RSQUARE            : ']' ;
 COLON              : ':' ;
 COMMA              : ',' ;
 IN_ARROW           : '<-' ;
+OUT_ARROW           : '->' ;
 
 UNMATCHED          : . ;

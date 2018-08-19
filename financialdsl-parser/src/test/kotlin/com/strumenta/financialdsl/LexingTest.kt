@@ -45,6 +45,14 @@ class LexingTest {
     }
 
     @Test
+    fun parseCompanyTypesSimplified() {
+        var tokens = assertLexedWithoutErrors("company_types_1")
+        tokens = tokens.filter { it.channel == 0 }
+        println(tokens.map { it.typeName })
+        assertEquals(listOf("COMPANY", "TYPE", "ID", "LBRACE", "RBRACE", "EOF"), tokens.map { it.typeName })
+    }
+
+    @Test
     fun parseCompanyTypes() {
         var tokens = assertLexedWithoutErrors("company_types")
         tokens = tokens.filter { it.channel == 0 }

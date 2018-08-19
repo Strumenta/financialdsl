@@ -27,6 +27,7 @@ class ParsingTest {
             }
 
             override fun syntaxError(recognizer: Recognizer<*, *>, offendingSymbol: Any?, line: Int, charPositionInLine: Int, msg: String, e: RecognitionException?) {
+                e?.printStackTrace()
                 fail("Syntax error: $msg at $line:$charPositionInLine, $offendingSymbol, $e")
             }
 
@@ -37,6 +38,12 @@ class ParsingTest {
         parser.removeErrorListeners()
         parser.addErrorListener(errorListener)
         return parser.financialDSLFile()
+    }
+
+    @Test
+    fun parseCompanyTypesSimplified() {
+        val root = assertParsedWithoutErrors("company_types_1")
+        assertEquals(1, root.declarations.size)
     }
 
     @Test
