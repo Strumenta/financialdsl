@@ -35,7 +35,7 @@ dependencies {
 
 task('ensureGeneratedSrcAntlrExist') {
     doLast {
-        def folder = new File( 'financialdsl-parser/generated-src/antlr/' )
+        def folder = new File( projectDir.path + '/generated-src/antlr/' )
         if( !folder.exists() ) {
             println("Creating directory $folder")
             folder.mkdirs()
