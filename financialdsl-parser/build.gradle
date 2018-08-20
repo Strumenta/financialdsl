@@ -33,12 +33,13 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 
+def genFolder = new File( projectDir.path + '/generated-src/antlr/' )
+
 task('ensureGeneratedSrcAntlrExist') {
-    doLast {
-        def folder = new File( projectDir.path + '/generated-src/antlr/' )
-        if( !folder.exists() ) {
-            println("Creating directory $folder")
-            folder.mkdirs()
+    doLast {        
+        if( !genFolder.exists() ) {
+            println("Creating directory $genFolder")
+            genFolder.mkdirs()
         }
     }
 }
@@ -46,24 +47,24 @@ task('ensureGeneratedSrcAntlrExist') {
 generateKotlinGrammarSource {
     maxHeapSize = "64m"
     arguments += ['-package', 'com.strumenta.financialdsl']
-    outputDirectory = new File("generated-src/antlr/".toString())
+    outputDirectory = new File( genFolder.toString())
 }
 generateKotlinGrammarSource.dependsOn ensureGeneratedSrcAntlrExist
 compileKotlin.dependsOn generateKotlinGrammarSource
 sourceSets {
     generated {
-        kotlin.srcDir 'generated-src/antlr/'
+        kotlin.srcDir genFolder
     }
 }
 compileKotlin.source sourceSets.generated.kotlin, sourceSets.main.kotlin
 
 clean{
-    delete "generated-src"
+    delete genFolder
 }
 
 idea {
     module {
-        sourceDirs += file("generated-src/antlr/")
+        sourceDirs += genFolder
     }
 }
 
