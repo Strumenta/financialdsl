@@ -25,8 +25,9 @@ dependencies {
     compile "com.strumenta.antlr-kotlin:antlr-kotlin-runtime-common:$projectVersion"
     compile "com.strumenta.antlr-kotlin:antlr-kotlin-runtime-jvm:$projectVersion"
     compile "org.jetbrains.kotlin:kotlin-stdlib-common:$kotlin_version"
+    testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
     testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
-    //testCompile 'junit:junit:4.12'
+    testCompile 'junit:junit:4.12'
 }
 
 task('ensureGeneratedSrcAntlrExist') {
@@ -62,3 +63,11 @@ idea {
         sourceDirs += file("generated-src/antlr/")
     }
 }
+
+test {
+    dependsOn 'cleanTest'
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
+
