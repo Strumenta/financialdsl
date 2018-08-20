@@ -1,6 +1,6 @@
 buildscript {
     ext.kotlin_version = '1.2.60'
-    ext.projectVersion = '0.0.2'
+    ext.antlrKotlinVersion = "6167dc7090"
 
     repositories {
         mavenCentral()
@@ -9,7 +9,7 @@ buildscript {
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "com.strumenta.antlr-kotlin:antlr-kotlin-gradle-plugin:master-SNAPSHOT"
+        classpath "com.strumenta.antlr-kotlin:antlr-kotlin-gradle-plugin:${antlrKotlinVersion}"
     }
 }
 
@@ -24,8 +24,8 @@ repositories {
 }
 
 dependencies {
-    compile "com.strumenta.antlr-kotlin:antlr-kotlin-runtime-common:master-SNAPSHOT"
-    compile "com.strumenta.antlr-kotlin:antlr-kotlin-runtime-jvm:master-SNAPSHOT"
+    compile "com.strumenta.antlr-kotlin:antlr-kotlin-runtime-common:${antlrKotlinVersion}"
+    compile "com.strumenta.antlr-kotlin:antlr-kotlin-runtime-jvm:${antlrKotlinVersion}"
 
     compile "org.jetbrains.kotlin:kotlin-stdlib-common:$kotlin_version"
     testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
@@ -38,7 +38,7 @@ task('ensureGeneratedSrcAntlrExist') {
         def folder = new File( 'financialdsl-parser/generated-src/antlr/' )
         if( !folder.exists() ) {
             println("Creating directory $folder")
-            //folder.mkdirs()
+            folder.mkdirs()
         }
     }
 }
@@ -73,4 +73,7 @@ test {
         events "passed", "skipped", "failed"
     }
 }
+
+task listAllDependencies(type: DependencyReportTask) {}
+
 
