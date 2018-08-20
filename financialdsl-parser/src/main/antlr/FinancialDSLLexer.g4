@@ -45,6 +45,7 @@ DIVISION           : '/' ;
 EQUAL              : '=' ;
 LPAREN             : '(' ;
 RPAREN             : ')' ;
+TIMEOPEN           : '@{' ;
 LBRACE             : '{' ;
 RBRACE             : '}' ;
 LSQUARE            : '[' ;

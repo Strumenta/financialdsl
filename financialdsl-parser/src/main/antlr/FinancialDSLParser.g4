@@ -13,7 +13,7 @@ topLevelDeclaration : companyTypeDeclaration #companyTypeDecl
 entityDeclaration : name=ID IS target=entityType LBRACE (stmts+=entityDeclarationStmt)* RBRACE
                   ;
 
-entityDeclarationStmt : (limit=limitDefinition)? name=ID (IS type)?
+entityDeclarationStmt : name=ID (IS type)?
                         ((EQUAL value=expression)|(IN_ARROW PARAMETER)|(IN_ARROW SUM))?
                         (OUT_ARROW CONTRIBUTES TO contributed=expression)?
                       ;
@@ -30,11 +30,8 @@ type : AMOUNT
 taxDeclaration : TAX ON target=entityType LBRACE (stmts+=taxDeclarationStmt)* RBRACE
                ;
 
-taxDeclarationStmt : (limit=limitDefinition)? field=ID COLON value=expression
+taxDeclarationStmt : field=ID COLON value=expression
                    ;
-
-limitDefinition : LBRACE (BEFORE|AFTER|SINCE) date RBRACE
-                ;
 
 date : MONTH year=INTLIT
      ;
@@ -47,6 +44,13 @@ expression : left=expression PLUS right=expression #sumExpr
            | PERCLIT #percentageLiteral
            | expression PERIODICITY #periodicExpr
            | fieldName=ID OF expression #fieldAccessExpr
+           | valueInTime+ #timeExpr
+           ;
+
+valueInTime : timeClause expression
+            ;
+
+timeClause : TIMEOPEN (BEFORE|AFTER|SINCE) date RBRACE
            ;
 
 mapEntry : expression AT expression
