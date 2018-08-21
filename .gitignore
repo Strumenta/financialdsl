@@ -6,3 +6,5 @@ build
 generated-src
 .DS_Store
 classes
+*.ipr
+*.iws

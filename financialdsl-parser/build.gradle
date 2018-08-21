@@ -51,6 +51,7 @@ generateKotlinGrammarSource {
 }
 generateKotlinGrammarSource.dependsOn ensureGeneratedSrcAntlrExist
 compileKotlin.dependsOn generateKotlinGrammarSource
+idea.dependsOn generateKotlinGrammarSource
 sourceSets {
     generated {
         kotlin.srcDir genFolder
