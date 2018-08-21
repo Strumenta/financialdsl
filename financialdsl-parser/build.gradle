@@ -35,23 +35,13 @@ dependencies {
 
 def genFolder = new File( projectDir.path + '/generated-src/antlr/' )
 
-task('ensureGeneratedSrcAntlrExist') {
-    doLast {        
-        if( !genFolder.exists() ) {
-            println("Creating directory $genFolder")
-            genFolder.mkdirs()
-        }
-    }
-}
-
 generateKotlinGrammarSource {
     maxHeapSize = "64m"
     arguments += ['-package', 'com.strumenta.financialdsl']
     outputDirectory = new File( genFolder.toString())
 }
-generateKotlinGrammarSource.dependsOn ensureGeneratedSrcAntlrExist
 compileKotlin.dependsOn generateKotlinGrammarSource
-idea.dependsOn generateKotlinGrammarSource
+
 sourceSets {
     generated {
         kotlin.srcDir genFolder

@@ -3,7 +3,6 @@
 *.iml
 financialdsl-parser/src/main/antlr/FinancialDSLLexer.tokens
 build
-generated-src
 .DS_Store
 classes
 *.ipr
