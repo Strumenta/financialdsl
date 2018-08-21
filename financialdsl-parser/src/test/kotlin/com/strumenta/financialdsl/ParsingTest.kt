@@ -70,4 +70,10 @@ class ParsingTest {
         val root = assertParsedWithoutErrors("person2")
         assertEquals(1, root.declarations.size)
     }
+
+    @Test
+    fun parseIres() {
+        val root = assertParsedWithoutErrors("ires")
+        assertEquals(1, root.declarations.size)
+    }
 }

@@ -27,13 +27,14 @@ companyTypeDeclarationStmt : name=ID (IS type)? ((EQUAL value=expression)|(IN_AR
 type : AMOUNT
      ;
 
-taxDeclaration : TAX ON target=entityType LBRACE (stmts+=taxDeclarationStmt)* RBRACE
+taxDeclaration : TAX name=ID ON target=entityType LBRACE (stmts+=taxDeclarationStmt)* RBRACE
                ;
 
 taxDeclarationStmt : field=ID COLON value=expression
                    ;
 
 date : MONTH year=INTLIT
+     | year=INTLIT
      ;
 
 expression : left=expression PLUS right=expression #sumExpr
@@ -46,6 +47,7 @@ expression : left=expression PLUS right=expression #sumExpr
            | fieldName=ID OF expression #fieldAccessExpr
            | valueInTime+ #timeExpr
            | SHARE OF toShare=expression (FOR owner=expression)? #shareExpr
+           | PERCLIT OF baseValue=expression #percentageExpr
            ;
 
 valueInTime : timeClause expression
