@@ -64,4 +64,10 @@ class ParsingTest {
         val root = assertParsedWithoutErrors("person")
         assertEquals(1, root.declarations.size)
     }
+
+    @Test
+    fun parsePersonWithShare() {
+        val root = assertParsedWithoutErrors("person2")
+        assertEquals(1, root.declarations.size)
+    }
 }

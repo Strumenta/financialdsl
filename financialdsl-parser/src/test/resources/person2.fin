@@ -1,0 +1,6 @@
+Federico is person {
+    net_compensation = @{before july 2018} 0 monthly
+                       @{since july 2018} 2K monthly
+    gross_compensation = net_compensation -> contributes to personnel_costs of Strumenta
+    income = net_compensation + share of Strumenta's net_profit
+}

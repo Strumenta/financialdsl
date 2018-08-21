@@ -28,6 +28,8 @@ PERIODICITY : 'monthly' | 'weekly' | 'yearly' ;
 CONTRIBUTES : 'contributes' ;
 TO : 'to' ;
 OF : 'of' ;
+SHARE : 'share' ;
+FOR : 'for' ;
 
 // Identifiers
 ID                 : [A-Za-z][A-Za-z0-9_]* ;

@@ -45,6 +45,7 @@ expression : left=expression PLUS right=expression #sumExpr
            | expression PERIODICITY #periodicExpr
            | fieldName=ID OF expression #fieldAccessExpr
            | valueInTime+ #timeExpr
+           | SHARE OF toShare=expression (FOR owner=expression) #shareExpr
            ;
 
 valueInTime : timeClause expression
