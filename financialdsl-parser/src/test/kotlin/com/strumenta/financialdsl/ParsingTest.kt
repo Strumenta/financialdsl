@@ -76,4 +76,28 @@ class ParsingTest {
         val root = assertParsedWithoutErrors("ires")
         assertEquals(1, root.declarations.size)
     }
+
+    @Test
+    fun parseIrap() {
+        val root = assertParsedWithoutErrors("irap")
+        assertEquals(1, root.declarations.size)
+    }
+
+    @Test
+    fun parseRegions() {
+        val root = assertParsedWithoutErrors("regions")
+        assertEquals(1, root.declarations.size)
+    }
+
+    @Test
+    fun parseCities() {
+        val root = assertParsedWithoutErrors("cities")
+        assertEquals(1, root.declarations.size)
+    }
+
+    @Test
+    fun parseCountries() {
+        val root = assertParsedWithoutErrors("countries")
+        assertEquals(1, root.declarations.size)
+    }
 }

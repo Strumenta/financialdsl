@@ -1,7 +1,7 @@
 tax IRES on SRL {
     // In maniera grossolana ma abbastanza precisa si puo' calcolare che l'utile tassabile e' circa il 20% piu' grande
     // dell'utile lordo.
-	taxable:  120% of gross_profit
-	rate: @{before 2017} 27.5%
+	taxable =  120% of gross_profit
+	rate = @{before 2017} 27.5%
 	      @{since 2017} 24%
 }

@@ -8,7 +8,28 @@ financialDSLFile : (declarations+=topLevelDeclaration)* EOF
 topLevelDeclaration : companyTypeDeclaration #companyTypeDecl
                     | taxDeclaration #taxDecl
                     | entityDeclaration #entityDecl
+                    | countriesDeclaration #countriesDecl
+                    | regionsDeclaration #regionsDecl
+                    | citiesDeclaration #citiesDecl
                     ;
+
+countriesDeclaration : COUNTRIES LBRACE (countries+=countryDeclaration)* RBRACE
+                     ;
+
+regionsDeclaration : REGIONS OF country=ID LBRACE (regions+=regionDeclaration)* RBRACE
+                     ;
+
+citiesDeclaration : CITIES OF region=ID LBRACE (cities+=cityDeclaration)* RBRACE
+                     ;
+
+countryDeclaration : name=ID (eu=EU)?
+                   ;
+
+regionDeclaration : name=ID
+                   ;
+
+cityDeclaration : name=ID
+                ;
 
 entityDeclaration : name=ID IS target=entityType LBRACE (stmts+=entityDeclarationStmt)* RBRACE
                   ;
@@ -30,7 +51,7 @@ type : AMOUNT
 taxDeclaration : TAX name=ID ON target=entityType LBRACE (stmts+=taxDeclarationStmt)* RBRACE
                ;
 
-taxDeclarationStmt : field=ID COLON value=expression
+taxDeclarationStmt : field=ID EQUAL value=expression
                    ;
 
 date : MONTH year=INTLIT
@@ -48,6 +69,11 @@ expression : left=expression PLUS right=expression #sumExpr
            | valueInTime+ #timeExpr
            | SHARE OF toShare=expression (FOR owner=expression)? #shareExpr
            | PERCLIT OF baseValue=expression #percentageExpr
+           | clauses+=whenClause (COMMA clauses+=whenClause)* #whenExpr
+           | left=expression EQUAL right=expression #equality
+           ;
+
+whenClause : WHEN condition=expression value=expression
            ;
 
 valueInTime : timeClause expression

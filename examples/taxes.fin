@@ -86,3 +86,11 @@ tax IRPEF on person {
 											   [above]  -> 3.33%								   											   
 }
 */
+
+regions of Italy {
+    Piedmont
+}
+
+cities of Piedmont {
+    Torino
+}

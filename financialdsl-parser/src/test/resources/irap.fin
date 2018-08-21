@@ -1,0 +1,4 @@
+tax IRAP on SRL {
+	taxable = net_production
+	rate = when region=Piedmont 3.9%
+}

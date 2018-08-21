@@ -30,6 +30,12 @@ TO : 'to' ;
 OF : 'of' ;
 SHARE : 'share' ;
 FOR : 'for' ;
+WHEN : 'when' ;
+THEN : 'then' ;
+COUNTRIES : 'countries' ;
+REGIONS : 'regions' ;
+CITIES : 'cities' ;
+EU : 'EU' ;
 
 // Identifiers
 ID                 : [A-Za-z][A-Za-z0-9_]* ;
