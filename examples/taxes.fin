@@ -87,6 +87,10 @@ tax IRPEF on person {
 }
 */
 
+countries {
+    Italy EU
+}
+
 regions of Italy {
     Piedmont
 }

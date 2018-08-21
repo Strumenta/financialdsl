@@ -1,0 +1,16 @@
+tax IRPEF on person {
+    taxable = income
+	rate = national_rate + regional_rate + town_rate
+	national_rate = brackets [to 15K] -> 23%,
+							 [to 28K] -> 27%,
+							 [to 55K] -> 38%,
+							 [to 75K] -> 41%,
+							 [above]  -> 43%
+	town_rate = when town=Torino brackets [to 11,670] -> 0%
+                                          [above] -> 0.8%
+	regional_rate = when region=Piedmont brackets [to 15K] -> 1.62%,
+											      [to 28K] -> 2.13%,
+											      [to 55K] -> 2.75%,
+											      [to 75K] -> 3.32%,
+											      [above]  -> 3.33%
+}

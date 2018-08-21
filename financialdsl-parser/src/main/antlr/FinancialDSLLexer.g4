@@ -36,6 +36,7 @@ COUNTRIES : 'countries' ;
 REGIONS : 'regions' ;
 CITIES : 'cities' ;
 EU : 'EU' ;
+BRACKETS : 'brackets' ;
 
 // Identifiers
 ID                 : [A-Za-z][A-Za-z0-9_]* ;

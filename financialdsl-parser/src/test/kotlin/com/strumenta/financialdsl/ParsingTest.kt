@@ -84,6 +84,12 @@ class ParsingTest {
     }
 
     @Test
+    fun parseIrpef() {
+        val root = assertParsedWithoutErrors("irpef")
+        assertEquals(1, root.declarations.size)
+    }
+
+    @Test
     fun parseRegions() {
         val root = assertParsedWithoutErrors("regions")
         assertEquals(1, root.declarations.size)
