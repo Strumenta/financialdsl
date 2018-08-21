@@ -50,8 +50,9 @@ sourceSets {
 compileKotlin.source sourceSets.generated.kotlin, sourceSets.main.kotlin
 
 clean{
-    //delete genFolder
     delete fileTree(dir: genFolder , include: '*.kt')
+    delete fileTree(dir: genFolder , include: '*.interp')
+    delete fileTree(dir: genFolder , include: '*.tokens')
 }
 
 idea {
