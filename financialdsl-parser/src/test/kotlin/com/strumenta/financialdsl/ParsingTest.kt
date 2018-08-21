@@ -11,7 +11,8 @@ import kotlin.test.fail
 class ParsingTest {
 
     private fun assertParsedWithoutErrors(exampleName: String) : FinancialDSLParser.FinancialDSLFileContext {
-        val input = CharStreams.fromFileName("src/test/resources/$exampleName.fin")
+        val inputStream = LexingTest::class.java.getResourceAsStream("/$exampleName.fin")
+        val input = CharStreams.fromStream(inputStream)
         val lexer = FinancialDSLLexer(input)
         val errorListener = object : ANTLRErrorListener {
             override fun reportAmbiguity(recognizer: Parser, dfa: DFA, startIndex: Int, stopIndex: Int, exact: Boolean, ambigAlts: BitSet, configs: ATNConfigSet) {
