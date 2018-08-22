@@ -59,7 +59,7 @@ date : MONTH year=INTLIT
      ;
 
 expression : left=expression PLUS right=expression #sumExpr
-           | LSQUARE (entries+=mapEntry (COMMA entries+=mapEntry)*)? RSQUARE #mapExpr
+           | LSQUARE (entries+=mapEntry (COMMA entries+=mapEntry)*)? RSQUARE #sharesMapExpr
            | name=ID #referenceExpr
            | INTLIT #intLiteral
            | DECLIT #decimalLiteral
@@ -93,6 +93,6 @@ timeClause : TIMEOPEN (BEFORE|AFTER|SINCE) date RBRACE
 mapEntry : expression AT expression
          ;
 
-entityType : ID #companyTypeEntity
+entityType : name=ID #companyTypeEntity
            | PERSON #personEntity
            ;

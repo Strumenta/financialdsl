@@ -3,7 +3,11 @@ package com.strumenta.financialdsl.parser
 import com.strumenta.financialdsl.FinancialDSLLexer
 import com.strumenta.financialdsl.FinancialDSLParser
 import com.strumenta.financialdsl.FinancialDSLParser.*
+import com.strumenta.financialdsl.model.CompanyTypeRef
+import com.strumenta.financialdsl.model.FinancialDSLFile
 import com.strumenta.kotlinmultiplatform.BitSet
+import me.tomassetti.kolasu.model.specificProcess
+import me.tomassetti.kolasu.model.tryToResolve
 import org.antlr.v4.kotlinruntime.*
 import org.antlr.v4.kotlinruntime.Parser
 import org.antlr.v4.kotlinruntime.atn.ATNConfigSet
@@ -22,7 +26,7 @@ data class ParsingResult<R>(val ast: R?, val errors: List<Error>)
 
 class Parser {
 
-    fun parse(code: String) : ParsingResult<FinancialDSLFileContext> {
+    fun parse(code: String) : ParsingResult<FinancialDSLFile> {
         val input = CharStreams.fromString(code)
         val lexer = FinancialDSLLexer(input)
         val errors = LinkedList<Error>()
@@ -67,7 +71,14 @@ class Parser {
         }
         parser.removeErrorListeners()
         parser.addErrorListener(parserErrorListener)
-        val ast = parser.financialDSLFile()
+        val ast = parser.financialDSLFile().toAst()
+        ast.validate(errors)
         return ParsingResult(ast, errors)
+    }
+}
+
+private fun FinancialDSLFile.validate(errors: LinkedList<Error>) {
+    this.specificProcess(CompanyTypeRef::class.java) { companyTypeRef ->
+        companyTypeRef.ref.tryToResolve(this.companyTypes)
     }
 }
