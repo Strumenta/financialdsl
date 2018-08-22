@@ -60,6 +60,12 @@ class ParsingTest {
     }
 
     @Test
+    fun parseCompanyShare() {
+        val root = assertParsedWithoutErrors("company_share")
+        assertEquals(1, root.declarations.size)
+    }
+
+    @Test
     fun parsePerson() {
         val root = assertParsedWithoutErrors("person")
         assertEquals(1, root.declarations.size)
@@ -105,5 +111,11 @@ class ParsingTest {
     fun parseCountries() {
         val root = assertParsedWithoutErrors("countries")
         assertEquals(1, root.declarations.size)
+    }
+
+    @Test
+    fun parseCompleteExample() {
+        val root = assertParsedWithoutErrors("example1")
+        assertEquals(9, root.declarations.size)
     }
 }

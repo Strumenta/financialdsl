@@ -36,7 +36,7 @@ entityDeclaration : name=ID IS target=entityType LBRACE (stmts+=entityDeclaratio
 
 entityDeclarationStmt : name=ID (IS type)?
                         ((EQUAL value=expression)|(IN_ARROW PARAMETER)|(IN_ARROW SUM))?
-                        (OUT_ARROW CONTRIBUTES TO contributed=expression)?
+                        (OUT_ARROW CONTRIBUTES TO contributed=expression (BY SHARE)?)?
                       ;
 
 companyTypeDeclaration : COMPANY TYPE name=ID LBRACE (stmts+=companyTypeDeclarationStmt)* RBRACE
