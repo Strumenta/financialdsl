@@ -51,5 +51,5 @@ private fun Entity.evaluateCompany(period: Period, ctx: EvaluationContext): Comp
 }
 
 private fun Expression.evaluate(period: Period, ctx: EvaluationContext): Value {
-    TODO()
+    TODO(this.javaClass.canonicalName)
 }

@@ -54,12 +54,12 @@ taxDeclaration : TAX name=ID ON target=entityType LBRACE (stmts+=taxDeclarationS
 taxDeclarationStmt : field=ID EQUAL value=expression
                    ;
 
-date : MONTH year=INTLIT
-     | year=INTLIT
+date : MONTH year=INTLIT #monthDate
+     | year=INTLIT #yearDate
      ;
 
 expression : left=expression PLUS right=expression #sumExpr
-           | LSQUARE (entries+=mapEntry (COMMA entries+=mapEntry)*)? RSQUARE #sharesMapExpr
+           | LSQUARE (entries+=shareEntry (COMMA entries+=shareEntry)*)? RSQUARE #sharesMapExpr
            | name=ID #referenceExpr
            | INTLIT #intLiteral
            | DECLIT #decimalLiteral
@@ -90,7 +90,7 @@ valueInTime : timeClause expression
 timeClause : TIMEOPEN (BEFORE|AFTER|SINCE) date RBRACE
            ;
 
-mapEntry : expression AT expression
+shareEntry : owner=expression AT value=expression
          ;
 
 entityType : name=ID #companyTypeEntity

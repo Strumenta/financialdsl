@@ -1,6 +1,7 @@
 package com.strumenta.financialdsl.model
 
 import me.tomassetti.kolasu.model.*
+import java.time.Month
 
 abstract class TopLevelDeclaration(override val position: Position?) : Node(position)
 
@@ -65,11 +66,46 @@ data class Entity(override val name: String,
     fun field(name: String) : EntityField = fields.first { it.name == name }
 }
 
-abstract class Expression(override val position: Position? = null) : Node(position)
-
 data class EntityField(override val name: String,
                        val value: Expression?, override val position: Position? = null) : Node(position), Named
 
 data class Tax(override val name: String,
                   val target: EntityTypeRef,
                   override val position: Position? = null) : TopLevelDeclaration(position), Named
+
+abstract class Period(override val position: Position? = null) : Node(position)
+class BeforePeriod(val date: Date, override val position: Position? = null) : Period(position)
+class AfterPeriod(val date: Date, override val position: Position? = null) : Period(position)
+class SincePeriod(val date: Date, override val position: Position? = null) : Period(position)
+
+abstract class Date(override val position: Position? = null) : Node(position)
+data class Year(val value: Int, override val position: Position? = null) : Node(position)
+class MonthDate(val month: Month, val year: Year, override val position: Position? = null) : Date(position)
+class YearDate(val year: Year, override val position: Position? = null) : Date(position)
+
+///
+/// Expressions
+///
+
+abstract class Expression(override val position: Position? = null) : Node(position)
+
+data class TimeExpression(val clauses: List<TimeClause>, override val position: Position? = null) : Expression(position)
+data class TimeClause(val period: Period, val value: Expression, override val position: Position? = null) : Node(position)
+
+enum class Periodicity {
+    MONTHLY,
+    YEARLY
+}
+
+data class PeriodicExpression(val value: Expression, val periodicity: Periodicity, override val position: Position? = null) : Expression(position)
+
+data class IntLiteral(val value: Long, override val position: Position? = null) : Expression(position)
+data class DecimalLiteral(val value: Double, override val position: Position? = null) : Expression(position)
+data class PercentageLiteral(val value: Double, override val position: Position? = null) : Expression(position)
+
+data class ReferenceExpr(val name: ReferenceByName<Named>, override val position: Position? = null) : Expression(position)
+
+data class SharesMapExpr(val shares: List<Share>, override val position: Position? = null) : Expression(position)
+
+class Share(val owner: Expression, val shares: Expression, override val position: Position? = null) : Expression(position)
+
