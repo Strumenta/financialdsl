@@ -37,13 +37,14 @@ REGIONS : 'regions' ;
 CITIES : 'cities' ;
 EU : 'EU' ;
 BRACKETS : 'brackets' ;
+ABOVE : 'above' ;
 
 // Identifiers
 ID                 : [A-Za-z][A-Za-z0-9_]* ;
 
 // Literals
-INTLIT             : '0'|[1-9][0-9]*('K'|'M')? ;
-DECLIT             : ('0'|[1-9][0-9]*) '.' [0-9]+('K'|'M')? ;
+INTLIT             : ENTIRE_INT ('K'|'M')? ;
+DECLIT             : ENTIRE_INT '.' [0-9]+('K'|'M')? ;
 PERCLIT            : ('0'|[1-9][0-9]*) ('.' [0-9]+)? '%' ;
 
 // Operators
@@ -65,3 +66,9 @@ IN_ARROW           : '<-' ;
 OUT_ARROW           : '->' ;
 
 UNMATCHED          : . ;
+
+fragment ENTIRE_DIGIT_BLOCK : [0-9][0-9][0-9] ;
+fragment PARTIAL_DIGIT_BLOCK :  '0'|([1-9][0-9]?) ;
+fragment PARTIAL_OR_ENTIRE_BLOCK : ENTIRE_DIGIT_BLOCK | PARTIAL_DIGIT_BLOCK ;
+fragment ENTIRE_INT_USING_BLOCKS : PARTIAL_OR_ENTIRE_BLOCK (',' ENTIRE_DIGIT_BLOCK)* ;
+fragment ENTIRE_INT : ('0'|[1-9][0-9]*) | ENTIRE_INT_USING_BLOCKS ;

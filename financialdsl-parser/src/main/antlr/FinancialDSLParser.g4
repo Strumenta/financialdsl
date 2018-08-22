@@ -71,7 +71,15 @@ expression : left=expression PLUS right=expression #sumExpr
            | PERCLIT OF baseValue=expression #percentageExpr
            | clauses+=whenClause (COMMA clauses+=whenClause)* #whenExpr
            | left=expression EQUAL right=expression #equality
+           | BRACKETS entries+=bracketEntry (COMMA entries+=bracketEntry)* #bracketsExpr
            ;
+
+bracketEntry : LSQUARE range RSQUARE OUT_ARROW value=expression
+             ;
+
+range : TO value=expression
+      | ABOVE
+      ;
 
 whenClause : WHEN condition=expression value=expression
            ;

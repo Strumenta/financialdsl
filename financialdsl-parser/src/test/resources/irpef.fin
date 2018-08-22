@@ -6,7 +6,7 @@ tax IRPEF on person {
 							 [to 55K] -> 38%,
 							 [to 75K] -> 41%,
 							 [above]  -> 43%
-	town_rate = when town=Torino brackets [to 11,670] -> 0%
+	town_rate = when town=Torino brackets [to 11,670] -> 0%,
                                           [above] -> 0.8%
 	regional_rate = when region=Piedmont brackets [to 15K] -> 1.62%,
 											      [to 28K] -> 2.13%,
