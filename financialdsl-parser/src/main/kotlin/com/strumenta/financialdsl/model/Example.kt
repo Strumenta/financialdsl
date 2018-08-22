@@ -1,6 +1,7 @@
-import com.strumenta.financialdsl.parser.Parser
-import com.strumenta.financialdsl.parser.YearlyPeriod
-import com.strumenta.financialdsl.parser.evaluate
+package com.strumenta.financialdsl.model
+
+import com.strumenta.financialdsl.interpreter.YearlyPeriod
+import com.strumenta.financialdsl.interpreter.evaluate
 
 fun main(args: Array<String>) {
     val code = """countries {

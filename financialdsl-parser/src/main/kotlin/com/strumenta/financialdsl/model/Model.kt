@@ -1,12 +1,13 @@
 package com.strumenta.financialdsl.model
 
 import me.tomassetti.kolasu.model.*
+import me.tomassetti.kolasu.model.Position
 import java.time.Month
 
 abstract class TopLevelDeclaration(override val position: Position?) : Node(position)
 
 data class FinancialDSLFile(val declarations : List<TopLevelDeclaration>,
-                        override val position: Position? = null) : Node(position) {
+                            override val position: Position? = null) : Node(position) {
 
     @Derived val entities : List<Entity>
         get() = declarations.filterIsInstance(Entity::class.java)
@@ -28,15 +29,15 @@ data class Country(override val name : String, val eu: Boolean, override val pos
 
 data class RegionsList(val regions: List<Region>,
                        val country: ReferenceByName<Country>,
-                         override val position: Position? = null)
+                       override val position: Position? = null)
     : TopLevelDeclaration(position)
 data class Region(override val name : String, override val position: Position? = null) : Node(position), Named {
     fun country() = (this.parent as RegionsList).country.referred!!
 }
 
 data class CitiesList(val cities: List<City>,
-                       val region: ReferenceByName<Region>,
-                       override val position: Position? = null)
+                      val region: ReferenceByName<Region>,
+                      override val position: Position? = null)
     : TopLevelDeclaration(position)
 data class City(val name : String, override val position: Position? = null) : Node(position) {
     fun country() = region().country()
@@ -70,8 +71,8 @@ data class EntityField(override val name: String,
                        val value: Expression?, override val position: Position? = null) : Node(position), Named
 
 data class Tax(override val name: String,
-                  val target: EntityTypeRef,
-                  override val position: Position? = null) : TopLevelDeclaration(position), Named
+               val target: EntityTypeRef,
+               override val position: Position? = null) : TopLevelDeclaration(position), Named
 
 abstract class Period(override val position: Position? = null) : Node(position)
 class BeforePeriod(val date: Date, override val position: Position? = null) : Period(position)

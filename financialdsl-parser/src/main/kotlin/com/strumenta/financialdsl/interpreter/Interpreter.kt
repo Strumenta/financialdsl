@@ -1,6 +1,7 @@
-package com.strumenta.financialdsl.parser
+package com.strumenta.financialdsl.interpreter
 
 import com.strumenta.financialdsl.model.*
+import java.sql.Ref
 
 abstract class Period
 
@@ -21,9 +22,6 @@ data class CompanyValues(override val name: String, override val fieldValues: Ma
 
 data class EvaluationResult(val companies: List<CompanyValues>, val persons: List<PersonValues>)
 
-interface Value
-
-data class EntityRef(val name: String, val ctx: EvaluationContext) : Value
 
 class EvaluationContext {
     private val entityRefs = HashMap<String, EntityRef>()
@@ -33,8 +31,8 @@ class EvaluationContext {
 fun FinancialDSLFile.evaluate(period: Period) : EvaluationResult {
     val ctx = EvaluationContext()
     return EvaluationResult(
-            this.companies.map {  it.evaluateCompany(period, ctx) },
-            this.persons.map {  it.evaluatePerson(period, ctx) }
+            this.companies.map { it.evaluateCompany(period, ctx) },
+            this.persons.map { it.evaluatePerson(period, ctx) }
     )
 }
 
@@ -51,5 +49,9 @@ private fun Entity.evaluateCompany(period: Period, ctx: EvaluationContext): Comp
 }
 
 private fun Expression.evaluate(period: Period, ctx: EvaluationContext): Value {
-    TODO(this.javaClass.canonicalName)
+    return when (this) {
+        is SharesMapExpr -> SharesMapValue(this.shares.map {
+            it.owner.evaluate(period, ctx) as EntityRef to it.shares.evaluate(period, ctx) as PercentageValue }.toMap())
+        else -> TODO(this.javaClass.canonicalName)
+    }
 }

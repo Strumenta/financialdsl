@@ -1,9 +1,6 @@
-package com.strumenta.financialdsl.parser
+package com.strumenta.financialdsl.model
 
-import com.strumenta.financialdsl.FinancialDSLParser
 import com.strumenta.financialdsl.FinancialDSLParser.*
-import com.strumenta.financialdsl.model.*
-import com.strumenta.financialdsl.model.Period
 import me.tomassetti.kolasu.mapping.setParentsForSubTree
 import me.tomassetti.kolasu.mapping.toPosition
 import me.tomassetti.kolasu.model.ReferenceByName
@@ -27,15 +24,19 @@ fun TopLevelDeclarationContext.toAst(): TopLevelDeclaration {
                 this.findCountriesDeclaration()!!.countries.map { it.toAst() },
                 toPosition())
         is CompanyTypeDeclContext -> this.findCompanyTypeDeclaration()!!.let { CompanyType(it.name!!.text!!, toPosition()) }
-        is EntityDeclContext -> this.findEntityDeclaration()!!.let { Entity(
-                it.name!!.text!!,
-                it.findEntityType()!!.toAst(),
-                it.stmts.map { it.toAst() },
-                toPosition()) }
-        is TaxDeclContext -> this.findTaxDeclaration()!!.let { Tax(
-                it.name!!.text!!,
-                it.findEntityType()!!.toAst(),
-                toPosition()) }
+        is EntityDeclContext -> this.findEntityDeclaration()!!.let {
+            Entity(
+                    it.name!!.text!!,
+                    it.findEntityType()!!.toAst(),
+                    it.stmts.map { it.toAst() },
+                    toPosition())
+        }
+        is TaxDeclContext -> this.findTaxDeclaration()!!.let {
+            Tax(
+                    it.name!!.text!!,
+                    it.findEntityType()!!.toAst(),
+                    toPosition())
+        }
         else -> TODO(this.javaClass.canonicalName)
     }
 }
