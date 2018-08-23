@@ -6,8 +6,12 @@ import java.time.Month
 
 abstract class TopLevelDeclaration(override val position: Position?) : Node(position)
 
+interface Scope {
+    fun candidatesForValues() : List<Named>
+}
+
 data class FinancialDSLFile(val declarations : List<TopLevelDeclaration>,
-                            override val position: Position? = null) : Node(position) {
+                            override val position: Position? = null) : Node(position), Scope {
 
     @Derived val entities : List<Entity>
         get() = declarations.filterIsInstance(Entity::class.java)
@@ -20,6 +24,10 @@ data class FinancialDSLFile(val declarations : List<TopLevelDeclaration>,
 
     @Derived val companyTypes : List<CompanyType>
         get() = declarations.filterIsInstance(CompanyType::class.java)
+
+    override fun candidatesForValues(): List<Named> {
+        return entities
+    }
 }
 
 data class CountriesList(val countries: List<Country>,
@@ -63,8 +71,12 @@ data class CompanyType(override val name: String,
 data class Entity(override val name: String,
                   val type: EntityTypeRef,
                   val fields: List<EntityField>,
-                  override val position: Position? = null) : TopLevelDeclaration(position), Named {
+                  override val position: Position? = null) : TopLevelDeclaration(position), Named, Scope {
     fun field(name: String) : EntityField = fields.first { it.name == name }
+
+    override fun candidatesForValues(): List<Named> {
+        return fields
+    }
 }
 
 data class EntityField(override val name: String,

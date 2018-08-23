@@ -52,6 +52,10 @@ private fun Expression.evaluate(period: Period, ctx: EvaluationContext): Value {
     return when (this) {
         is SharesMapExpr -> SharesMapValue(this.shares.map {
             it.owner.evaluate(period, ctx) as EntityRef to it.shares.evaluate(period, ctx) as PercentageValue }.toMap())
+        is ReferenceExpr -> {
+            val target = this.name.referred!!
+            TODO("ReferenceExpr to ${target.javaClass.canonicalName}")
+        }
         else -> TODO(this.javaClass.canonicalName)
     }
 }

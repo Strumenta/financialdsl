@@ -33,6 +33,13 @@ Federico is person {
     income <- sum
 }
 
+Gabriele is person {
+    net_compensation = @{before july 2018} 0 monthly
+                       @{since july 2018} 1K monthly -> contributes to income
+    gross_compensation = net_compensation -> contributes to personnel_costs of Strumenta
+    income <- sum
+}
+
 Strumenta is SRL {
     owners = [Federico at 66%, Gabriele at 34%]
     gross_profit is amount <- parameter
@@ -71,6 +78,13 @@ tax IRPEF on person {
 }"""
 
     val parsingResult = Parser().parse(code)
+    if (!parsingResult.correct) {
+        println("ERRORS:")
+        parsingResult.errors.forEach { e ->
+            println("  $e")
+        }
+        return
+    }
     val evaluationResult = parsingResult.ast?.evaluate(YearlyPeriod(2018))
     println("Evaluation result: $evaluationResult")
 }
