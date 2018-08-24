@@ -3,6 +3,12 @@ package com.strumenta.financialdsl.model
 interface Type
 
 object IntType : Type
+object DecimalType : Type
+object PercentageType : Type
+object NoType : Type
+object EntityType : Type
+object MonthDateType : Type
+object SharesMapType : Type
 
 data class PeriodicType(val baseType: Type, val periodicity: Periodicity) : Type
 
@@ -30,4 +36,8 @@ fun commonSupertype(typeA: Type, typeB: Type) : Type {
         return typeA
     }
     TODO("Between $typeA and $typeB")
+}
+
+fun <E: Value> Collection<E>.commonSupertypeOfValues(): Type {
+    return commonSupertype(this.map { it.type })
 }

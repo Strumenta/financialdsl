@@ -3,6 +3,8 @@ package com.strumenta.financialdsl.interpreter
 import com.strumenta.financialdsl.model.*
 
 abstract class PeriodValue {
+    abstract fun granularity(): Granularity
+
     open val isYearly : Boolean
         get() = false
 }
@@ -10,38 +12,61 @@ abstract class PeriodValue {
 class YearlyPeriodValue(val year: Int) : PeriodValue() {
     override val isYearly: Boolean
         get() = true
+
+    override fun granularity() = Granularity.YEARLY_GRANULARITY
 }
 
-data class BeforePeriodValue(val date: Value) : PeriodValue()
-data class SincePeriodValue(val date: Value) : PeriodValue()
-data class AfterPeriodValue(val date: Value) : PeriodValue()
+data class BeforePeriodValue(val date: Value) : PeriodValue() {
+    override fun granularity(): Granularity {
+        return date.granularity
+    }
+}
+data class SincePeriodValue(val date: Value) : PeriodValue(){
+    override fun granularity(): Granularity {
+        return date.granularity
+    }
+}
+data class AfterPeriodValue(val date: Value) : PeriodValue(){
+    override fun granularity(): Granularity {
+        return date.granularity
+    }
+}
 
-abstract class EntityValues(open val name: String, open val fieldValues: Map<String, Value>)
+abstract class EntityValues(open val name: String, open val fieldValues: Map<String, Value>) : ComposedValue(fieldValues.values) {
 
-data class Percentage(val value: Double) : Value
+}
 
-data class SharesMap(val shares: Map<EntityRef, Percentage>) : Value
+data class Percentage(val value: Double) : ConstantValue(PercentageType)
 
-data class PersonValues(override val name: String, override val fieldValues: Map<String, Value>) : EntityValues(name, fieldValues)
+data class SharesMap(val shares: Map<EntityRef, Percentage>) : ConstantValue(SharesMapType)
 
-data class CompanyValues(override val name: String, override val fieldValues: Map<String, Value>, val type: CompanyType) : EntityValues(name, fieldValues) {
+data class PersonValues(override val name: String, override val fieldValues: Map<String, Value>) : EntityValues(name, fieldValues) {
+    override fun forPeriod(period: PeriodValue): PersonValues {
+        return PersonValues(name, fieldValues.mapValues { it.value.forPeriod(period) })
+    }
+}
+
+data class CompanyValues(override val name: String, override val fieldValues: Map<String, Value>, val companyType: CompanyType) : EntityValues(name, fieldValues) {
     val ownership
         get() = fieldValues["owners"] as SharesMap
+    override fun forPeriod(period: PeriodValue): CompanyValues {
+        return CompanyValues(name, fieldValues.mapValues { it.value.forPeriod(period) }, companyType)
+    }
 }
 
 data class EvaluationResult(val companies: List<CompanyValues>, val persons: List<PersonValues>)
 
 
-class EvaluationContext(val file: FinancialDSLFile, val period: PeriodValue) {
+class EvaluationContext(val file: FinancialDSLFile) {
     private val entityRefs = HashMap<String, EntityValue>()
     fun entityRef(name: String) = entityRefs.computeIfAbsent(name) { EntityValue(file.entity(name), this) }
 }
 
-fun FinancialDSLFile.evaluate(periodValue: PeriodValue) : EvaluationResult {
-    val ctx = EvaluationContext(this, periodValue)
+fun FinancialDSLFile.evaluate(period: PeriodValue) : EvaluationResult {
+    val ctx = EvaluationContext(this)
     return EvaluationResult(
-            this.companies.map { it.evaluateCompany(ctx) },
-            this.persons.map { it.evaluatePerson(ctx) }
+            this.companies.map { it.evaluateCompany(ctx).forPeriod(period) },
+            this.persons.map { it.evaluatePerson(ctx).forPeriod(period) }
     )
 }
 
@@ -73,24 +98,24 @@ fun Expression.evaluate(ctx: EvaluationContext): Value {
         is PercentageLiteral -> PercentageValue(this.value)
         is IntLiteral -> IntValue(this.value)
         is TimeExpression -> {
-            val type = this.type()
-            when (type) {
-                is PeriodicType -> {
-                    when {
-                        ctx.period.isYearly && type.periodicity == Periodicity.MONTHLY -> {
-                            if (type.baseType == IntType) {
-                                var sum = 0L
-                                return IntValue(sum)
-                            } else {
-                                TODO()
-                            }
-                        }
-                        else -> TODO("Periodic Type for period ${ctx.period} and periodicity ${type.periodicity}")
-                    }
-                }
-                else -> TODO("TimeExpression of type $type")
-            }
-            //TimeValue(this.clauses.map { it.evaluate(ctx) })
+//            val type = this.type()
+//            when (type) {
+//                is PeriodicType -> {
+//                    when {
+//                        ctx.period.isYearly && type.periodicity == Periodicity.MONTHLY -> {
+//                            if (type.baseType == IntType) {
+//                                var sum = 0L
+//                                return IntValue(sum)
+//                            } else {
+//                                TODO()
+//                            }
+//                        }
+//                        else -> TODO("Periodic Type for period ${ctx.period} and periodicity ${type.periodicity}")
+//                    }
+//                }
+//                else -> TODO("TimeExpression of type $type")
+//            }
+            TimeValue(this.clauses.map { it.evaluate(ctx) })
         }
         is PeriodicExpression -> PeriodicValue(this.value.evaluate(ctx), this.periodicity)
         else -> TODO(this.javaClass.canonicalName)
