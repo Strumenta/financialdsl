@@ -21,7 +21,7 @@ class YearlyPeriodValue(override val year: Int) : PeriodValue() {
     override val isYearly: Boolean
         get() = true
 
-    override fun granularity() = Granularity.YEARLY_GRANULARITY
+    override fun granularity() = GranularityEnum.YEARLY_GRANULARITY
 
     override fun toString() = "YearlyPeriodValue($year)"
 
@@ -40,7 +40,7 @@ class MonthlyPeriodValue(override val month: Month, override val year: Int) : Pe
     override val isMonthly: Boolean
         get() = true
 
-    override fun granularity() = Granularity.MONTHLY_GRANULARITY
+    override fun granularity() = GranularityEnum.MONTHLY_GRANULARITY
 
     override fun toString() = "MonthlyPeriodValue($month $year)"
 
@@ -73,6 +73,7 @@ data class BeforePeriodValue(val date: DateValue) : PeriodValue() {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }
+
 data class SincePeriodValue(val date: DateValue) : PeriodValue(){
     override fun granularity(): Granularity {
         return date.granularity
@@ -114,29 +115,60 @@ data class AfterPeriodValue(val date: DateValue) : PeriodValue(){
     }
 }
 
-abstract class EntityValues(open val name: String, open val fieldValues: Map<String, Value>) : ComposedValue(EntityType, fieldValues.values) {
-
+abstract class EntityValues(
+        open val ctx : EvaluationContext,
+        open val name: String, open val fieldValues: Map<String, Value>) : ComposedValue(EntityType, fieldValues.values) {
 }
 
 data class Percentage(val value: Double) : ConstantValue(PercentageType)
 
 data class SharesMap(val shares: Map<EntityRef, Percentage>) : ConstantValue(SharesMapType)
 
-data class PersonValues(override val name: String, override val fieldValues: Map<String, Value>) : EntityValues(name, fieldValues) {
+data class PersonValues(override val ctx : EvaluationContext,
+                        override val name: String, override val fieldValues: Map<String, Value>) : EntityValues(ctx, name, fieldValues) {
     override fun forPeriod(period: PeriodValue): PersonValues {
-        return PersonValues(name, fieldValues.mapValues { it.value.forPeriod(period) })
+        return PersonValues(ctx, name, fieldValues.mapValues { it.value.forPeriod(period) })
     }
 }
 
-data class CompanyValues(override val name: String, override val fieldValues: Map<String, Value>, val companyType: CompanyType) : EntityValues(name, fieldValues) {
+data class CompanyValues(override val ctx : EvaluationContext,
+                         override val name: String,
+                         override val fieldValues: Map<String, Value>, val companyType: CompanyType) : EntityValues(ctx, name, fieldValues) {
     val ownership
         get() = fieldValues["owners"] as SharesMap
     override fun forPeriod(period: PeriodValue): CompanyValues {
-        return CompanyValues(name, fieldValues.mapValues { it.value.forPeriod(period) }, companyType)
+        return CompanyValues(ctx, name, fieldValues.mapValues { it.value.forPeriod(period) }, companyType)
     }
 }
 
 data class EvaluationResult(val companies: List<CompanyValues>, val persons: List<PersonValues>)
+
+object LazyType : Type
+object LazyGranularity : Granularity {
+    override val value: Int
+        get() = throw UnsupportedOperationException()
+}
+
+class LazyEntityFieldValue(val entityName: String, val fieldName: String, val ctx: EvaluationContext) : Value {
+
+    private var calculatedValue : Value? = null
+
+    private fun calculatedValue() : Value {
+        if (calculatedValue == null) {
+            calculatedValue = ctx.file.entity(entityName).field(fieldName).value?.evaluate(ctx) ?: NoValue
+        }
+        return calculatedValue!!
+    }
+
+    override val type: Type
+        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+    override val granularity: Granularity
+        get() = calculatedValue().granularity
+
+    override fun forPeriod(period: PeriodValue): Value {
+        return calculatedValue().forPeriod(period)
+    }
+}
 
 
 class EvaluationContext(val file: FinancialDSLFile) {
@@ -153,15 +185,16 @@ fun FinancialDSLFile.evaluate(period: PeriodValue) : EvaluationResult {
 }
 
 private fun Entity.evaluatePerson(ctx: EvaluationContext): PersonValues {
-    return PersonValues(this.name, this.fields.map {
-        it.name to (it.value?.evaluate(ctx) ?: NoValue)
+    return PersonValues(ctx, this.name, this.fields.map {
+        it.name to LazyEntityFieldValue(this.name, it.name, ctx)
     }.toMap())
 }
 
 private fun Entity.evaluateCompany(ctx: EvaluationContext): CompanyValues {
     return CompanyValues(
+            ctx,
             this.name,
-            this.fields.map { it.name to (it.value?.evaluate(ctx) ?: NoValue) }.toMap(),
+            this.fields.map { it.name to LazyEntityFieldValue(this.name, it.name, ctx) }.toMap(),
             (this.type as CompanyTypeRef).ref.referred!!)
 }
 
