@@ -43,7 +43,12 @@ abstract class ConstantValue(override val type: Type) : ValueImpl(type, Granular
 // * constant  : they never change
 // * functions : they change over time, with a given granularity (daily, monthly, yearly)
 
-data class PercentageValue(val value: Double) : ConstantValue(PercentageType)
+data class PercentageValue(val value: Double) : ConstantValue(PercentageType) {
+    companion object {
+        val ALL = PercentageValue(100.0)
+        val NOTHING = PercentageValue(0.0)
+    }
+}
 
 data class DecimalValue(val value: Double) : ConstantValue(DecimalType)
 

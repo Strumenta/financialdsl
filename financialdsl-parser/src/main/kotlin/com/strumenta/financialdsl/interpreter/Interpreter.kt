@@ -123,16 +123,26 @@ abstract class EntityValues(
     fun get(name: String): Value {
         return fieldValues[name]!!
     }
+
+    abstract fun share(entityName: String): PercentageValue
 }
 
 data class Percentage(val value: Double) : ConstantValue(PercentageType)
 
-data class SharesMap(val shares: Map<EntityRef, Percentage>) : ConstantValue(SharesMapType)
+data class SharesMap(val shares: Map<String, PercentageValue>) : ConstantValue(SharesMapType)
 
 data class PersonValues(override val ctx : EvaluationContext,
                         override val name: String, override val fieldValues: Map<String, Value>) : EntityValues(ctx, name, fieldValues) {
     override fun forPeriod(period: PeriodValue): PersonValues {
         return PersonValues(ctx, name, fieldValues.mapValues { it.value.forPeriod(period) })
+    }
+
+    override fun share(entityName: String): PercentageValue {
+        return if (entityName == name) {
+            PercentageValue.ALL
+        } else {
+            PercentageValue.NOTHING
+        }
     }
 }
 
@@ -143,6 +153,10 @@ data class CompanyValues(override val ctx : EvaluationContext,
         get() = fieldValues["owners"] as SharesMap
     override fun forPeriod(period: PeriodValue): CompanyValues {
         return CompanyValues(ctx, name, fieldValues.mapValues { it.value.forPeriod(period) }, companyType)
+    }
+
+    override fun share(entityName: String): PercentageValue {
+        return ownership.shares[entityName] ?: PercentageValue.NOTHING
     }
 }
 
@@ -194,8 +208,8 @@ class LazyEntityFieldValue(val entityName: String, val fieldName: String, val ct
                                         contributions.add(ctx.entityRef(entity.name).get(field.name))
                                     }
                                     if (fieldAccessExpr.scope.name.name == "owners" && fieldAccessExpr.fieldName == fieldName && field.contribution.byShare) {
-                                        val percentageValue = ctx.entityRef(entityName)
-                                        //contributions.add(ctx.entityRef(entity.name).get(field.name))
+                                        val percentageValue = ctx.entityRef(entityName).share(entityName)
+                                        contributions.add(multiplyValues(percentageValue, ctx.entityRef(entity.name).get(field.name)))
                                     }
                                 } else {
                                     TODO()
@@ -253,6 +267,21 @@ fun sumValues(valueA: Value, valueB: Value) : Value {
             return sumValues(valueA.unlazy(), valueB.unlazy())
         }
         else -> TODO("Sum ${valueA.type} and ${valueB.type} ${valueA.javaClass} ${valueB.javaClass}")
+    }
+}
+
+fun multiplyValues(valueA: Value, valueB: Value) : Value {
+    return when {
+        valueA is PercentageValue && valueB is IntValue -> {
+            DecimalValue(valueA.value.div(100.0) * valueB.value)
+        }
+        valueA is IntValue && valueB is IntValue -> {
+            IntValue(valueA.value * valueB.value)
+        }
+        valueA is LazyEntityFieldValue || valueB is LazyEntityFieldValue -> {
+            multiplyValues(valueA.unlazy(), valueB.unlazy())
+        }
+        else -> TODO("Multiply ${valueA.type} and ${valueB.type} ${valueA.javaClass} ${valueB.javaClass}")
     }
 }
 
