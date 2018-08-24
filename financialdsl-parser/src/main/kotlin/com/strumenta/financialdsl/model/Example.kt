@@ -44,7 +44,7 @@ Strumenta is SRL {
     owners = [Federico at 66%, Gabriele at 34%]
     gross_profit is amount <- parameter
     personnel_costs is amount <- sum
-    net_profit = 0 -> contributes to income of owners by share
+    net_profit = 500 -> contributes to income of owners by share
 }
 
 tax IRAP on SRL {
@@ -85,7 +85,7 @@ tax IRPEF on person {
         }
         return
     }
-    val evaluationResult = parsingResult.ast?.evaluate(YearlyPeriodValue(2018))
+    val evaluationResult = parsingResult.ast?.evaluate(YearlyPeriodValue(2018), mapOf(Pair("Strumenta", "gross_profit") to IntValue(100_000)))
     println("== Evaluation result ==")
     evaluationResult?.let {
         it.persons.forEach { person ->
@@ -99,6 +99,10 @@ tax IRPEF on person {
     evaluationResult?.let {
         it.companies.forEach { company ->
             println("  == Company ${company.name} ==")
+            company.fieldValues.keys.sorted().forEach { fieldName ->
+                val fieldValue = company.fieldValues[fieldName]
+                println("    $fieldName: $fieldValue")
+            }
         }
     }
 }

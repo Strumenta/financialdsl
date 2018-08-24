@@ -89,6 +89,7 @@ data class Entity(override val name: String,
 data class EntityField(override val name: String,
                        val value: Expression?,
                        val isSum: Boolean,
+                       val isParameter: Boolean,
                        val contribution: Contribution?,
                        override val position: Position? = null) : Node(position), Named
 

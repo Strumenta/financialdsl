@@ -44,6 +44,7 @@ fun TopLevelDeclarationContext.toAst(): TopLevelDeclaration {
 private fun EntityDeclarationStmtContext.toAst(): EntityField {
     return EntityField(this.name!!.text!!, this.value?.toAst(),
             this.SUM() != null,
+            this.PARAMETER() != null,
             if (this.contributed == null) null else Contribution(this.contributed!!.toAst(), this.SHARE() != null),
             toPosition())
 }

@@ -29,7 +29,7 @@ abstract class ValueImpl(override val type: Type, override val granularity : Gra
     abstract override fun forPeriod(period: PeriodValue) : Value // this should be constant if the period is granular enough
 }
 
-abstract class ComposedValue(override val type: Type, val members: Collection<Value>) : ValueImpl(type, members.toList().minGranularity())
+abstract class ComposedValue(override val type: Type, val members: Collection<Value>) : ValueImpl(type, LazyGranularity { members.toList().minGranularity() })
 
 private fun <E : Value> List<E>.minGranularity(): Granularity {
     return this.foldRight(GranularityEnum.CONSTANT_GRANULARITY as Granularity) { a, b -> min(a.granularity, b)}
@@ -49,7 +49,7 @@ data class DecimalValue(val value: Double) : ConstantValue(DecimalType)
 
 data class IntValue(val value: Long) : ConstantValue(IntType)
 
-data class SharesMapValue(val entries: Map<EntityValue, PercentageValue>) : ConstantValue(SharesMapType)
+data class SharesMapValue(val entries: Map<EntityValues, PercentageValue>) : ConstantValue(SharesMapType)
 
 data class TimeValue(val alternatives: List<TimeValueEntry>) : ValueImpl(alternatives.map { it.value }.commonSupertypeOfValues(), alternatives
         .map { it.periodValue.granularity() }
@@ -101,11 +101,11 @@ data class MonthDateValue(override val month: Month, override val year: Int) : D
 
 data class PeriodicValue(val value: Value, val periodicity: Periodicity) : ConstantValue(PeriodicType(value.type, periodicity))
 
-data class EntityValue(val entityDecl: Entity, val evaluationContext: EvaluationContext) : ConstantValue(EntityType) {
-    private val fieldValues = HashMap<String, Value>()
-    val name
-        get() = entityDecl.name
-    fun get(fieldName: String): Value {
-        return fieldValues.computeIfAbsent(fieldName) { entityDecl.field(fieldName).value?.evaluate(evaluationContext) ?: NoValue }
-    }
-}
+//data class EntityValue(val entityDecl: Entity, val evaluationContext: EvaluationContext) : ConstantValue(EntityType) {
+//    private val fieldValues = HashMap<String, Value>()
+//    val name
+//        get() = entityDecl.name
+//    fun get(fieldName: String): Value {
+//        return fieldValues.computeIfAbsent(fieldName) { entityDecl.field(fieldName).value?.evaluate(evaluationContext) ?: NoValue }
+//    }
+//}
