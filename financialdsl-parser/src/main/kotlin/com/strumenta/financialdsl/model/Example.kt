@@ -1,6 +1,6 @@
 package com.strumenta.financialdsl.model
 
-import com.strumenta.financialdsl.interpreter.YearlyPeriod
+import com.strumenta.financialdsl.interpreter.YearlyPeriodValue
 import com.strumenta.financialdsl.interpreter.evaluate
 
 fun main(args: Array<String>) {
@@ -85,6 +85,20 @@ tax IRPEF on person {
         }
         return
     }
-    val evaluationResult = parsingResult.ast?.evaluate(YearlyPeriod(2018))
-    println("Evaluation result: $evaluationResult")
+    val evaluationResult = parsingResult.ast?.evaluate(YearlyPeriodValue(2018))
+    println("== Evaluation result ==")
+    evaluationResult?.let {
+        it.persons.forEach { person ->
+            println("  == Person ${person.name} ==")
+            person.fieldValues.keys.sorted().forEach { fieldName ->
+                val fieldValue = person.fieldValues[fieldName]
+                println("    $fieldName: $fieldValue")
+            }
+        }
+    }
+    evaluationResult?.let {
+        it.companies.forEach { company ->
+            println("  == Company ${company.name} ==")
+        }
+    }
 }

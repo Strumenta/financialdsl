@@ -1,12 +1,20 @@
 package com.strumenta.financialdsl.interpreter
 
 import com.strumenta.financialdsl.model.*
-import java.sql.Ref
-import kotlin.reflect.jvm.internal.impl.resolve.constants.IntValue
 
-abstract class Period
+abstract class PeriodValue {
+    open val isYearly : Boolean
+        get() = false
+}
 
-class YearlyPeriod(val year: Int) : Period()
+class YearlyPeriodValue(val year: Int) : PeriodValue() {
+    override val isYearly: Boolean
+        get() = true
+}
+
+data class BeforePeriodValue(val date: Value) : PeriodValue()
+data class SincePeriodValue(val date: Value) : PeriodValue()
+data class AfterPeriodValue(val date: Value) : PeriodValue()
 
 abstract class EntityValues(open val name: String, open val fieldValues: Map<String, Value>)
 
@@ -24,43 +32,87 @@ data class CompanyValues(override val name: String, override val fieldValues: Ma
 data class EvaluationResult(val companies: List<CompanyValues>, val persons: List<PersonValues>)
 
 
-class EvaluationContext {
-    private val entityRefs = HashMap<String, EntityRef>()
-    fun entityRef(name: String) = entityRefs.computeIfAbsent(name) { EntityRef(name, this) }
+class EvaluationContext(val file: FinancialDSLFile, val period: PeriodValue) {
+    private val entityRefs = HashMap<String, EntityValue>()
+    fun entityRef(name: String) = entityRefs.computeIfAbsent(name) { EntityValue(file.entity(name), this) }
 }
 
-fun FinancialDSLFile.evaluate(period: Period) : EvaluationResult {
-    val ctx = EvaluationContext()
+fun FinancialDSLFile.evaluate(periodValue: PeriodValue) : EvaluationResult {
+    val ctx = EvaluationContext(this, periodValue)
     return EvaluationResult(
-            this.companies.map { it.evaluateCompany(period, ctx) },
-            this.persons.map { it.evaluatePerson(period, ctx) }
+            this.companies.map { it.evaluateCompany(ctx) },
+            this.persons.map { it.evaluatePerson(ctx) }
     )
 }
 
-private fun Entity.evaluatePerson(period: Period, ctx: EvaluationContext): PersonValues {
-    return PersonValues(this.name, this.fields.map { it.name to it.value!!.evaluate(period, ctx) }.toMap())
+private fun Entity.evaluatePerson(ctx: EvaluationContext): PersonValues {
+    return PersonValues(this.name, this.fields.map {
+        it.name to (it.value?.evaluate(ctx) ?: NoValue)
+    }.toMap())
 }
 
-private fun Entity.evaluateCompany(period: Period, ctx: EvaluationContext): CompanyValues {
+private fun Entity.evaluateCompany(ctx: EvaluationContext): CompanyValues {
     return CompanyValues(
             this.name,
-            this.fields.map { it.name to (it.value?.evaluate(period, ctx) ?: NoValue) }.toMap(),
+            this.fields.map { it.name to (it.value?.evaluate(ctx) ?: NoValue) }.toMap(),
             (this.type as CompanyTypeRef).ref.referred!!)
 }
 
-private fun Expression.evaluate(period: Period, ctx: EvaluationContext): Value {
+fun Expression.evaluate(ctx: EvaluationContext): Value {
     return when (this) {
         is SharesMapExpr -> SharesMapValue(this.shares.map {
-            it.owner.evaluate(period, ctx) as EntityRef to it.shares.evaluate(period, ctx) as PercentageValue }.toMap())
+            it.owner.evaluate(ctx) as EntityValue to it.shares.evaluate(ctx) as PercentageValue }.toMap())
         is ReferenceExpr -> {
             val target = this.name.referred!!
             when (target) {
-                is Entity -> EntityRef(target.name, ctx)
+                is Entity -> ctx.entityRef(target.name)
+                is EntityFieldRef -> ctx.entityRef(target.entityName).get(target.name)
                 else -> TODO("ReferenceExpr to ${target.javaClass.canonicalName}")
             }
         }
         is PercentageLiteral -> PercentageValue(this.value)
         is IntLiteral -> IntValue(this.value)
+        is TimeExpression -> {
+            val type = this.type()
+            when (type) {
+                is PeriodicType -> {
+                    when {
+                        ctx.period.isYearly && type.periodicity == Periodicity.MONTHLY -> {
+                            if (type.baseType == IntType) {
+                                var sum = 0L
+                                return IntValue(sum)
+                            } else {
+                                TODO()
+                            }
+                        }
+                        else -> TODO("Periodic Type for period ${ctx.period} and periodicity ${type.periodicity}")
+                    }
+                }
+                else -> TODO("TimeExpression of type $type")
+            }
+            //TimeValue(this.clauses.map { it.evaluate(ctx) })
+        }
+        is PeriodicExpression -> PeriodicValue(this.value.evaluate(ctx), this.periodicity)
+        else -> TODO(this.javaClass.canonicalName)
+    }
+}
+
+private fun TimeClause.evaluate(ctx: EvaluationContext): TimeValueEntry {
+    return TimeValueEntry(this.period.evaluate(ctx), this.value.evaluate(ctx))
+}
+
+private fun Period.evaluate(ctx: EvaluationContext): PeriodValue {
+    return when (this) {
+        is BeforePeriod -> BeforePeriodValue(this.date.evaluate(ctx))
+        is SincePeriod -> SincePeriodValue(this.date.evaluate(ctx))
+        is AfterPeriod -> AfterPeriodValue(this.date.evaluate(ctx))
+        else -> TODO(this.javaClass.canonicalName)
+    }
+}
+
+private fun Date.evaluate(ctx: EvaluationContext): Value {
+    return when (this) {
+        is MonthDate -> MonthDateValue(this.month, this.year)
         else -> TODO(this.javaClass.canonicalName)
     }
 }

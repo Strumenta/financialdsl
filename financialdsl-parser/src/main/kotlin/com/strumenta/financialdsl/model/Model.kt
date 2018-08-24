@@ -6,6 +6,9 @@ import java.time.Month
 
 abstract class TopLevelDeclaration(override val position: Position?) : Node(position)
 
+data class EntityRef(override val name: String) : Named
+data class EntityFieldRef(val entityName: String, override val name: String) : Named
+
 interface Scope {
     fun candidatesForValues() : List<Named>
 }
@@ -27,6 +30,10 @@ data class FinancialDSLFile(val declarations : List<TopLevelDeclaration>,
 
     override fun candidatesForValues(): List<Named> {
         return entities
+    }
+
+    fun entity(name: String): Entity {
+        return entities.first { it.name == name }
     }
 }
 
@@ -75,7 +82,7 @@ data class Entity(override val name: String,
     fun field(name: String) : EntityField = fields.first { it.name == name }
 
     override fun candidatesForValues(): List<Named> {
-        return fields
+        return fields.map { EntityFieldRef(name, it.name) }
     }
 }
 
@@ -121,4 +128,3 @@ data class ReferenceExpr(val name: ReferenceByName<Named>, override val position
 data class SharesMapExpr(val shares: List<Share>, override val position: Position? = null) : Expression(position)
 
 class Share(val owner: Expression, val shares: Expression, override val position: Position? = null) : Expression(position)
-
