@@ -2,7 +2,9 @@ package com.strumenta.financialdsl.model
 
 interface Type
 
-object IntType : Type
+object IntType : Type {
+    override fun toString() = "IntType"
+}
 object DecimalType : Type
 object PercentageType : Type
 object NoType : Type
@@ -33,6 +35,12 @@ fun commonSupertype(types: List<Type>) : Type {
 
 fun commonSupertype(typeA: Type, typeB: Type) : Type {
     if (typeA == typeB) {
+        return typeA
+    }
+    if (typeA == NoType) {
+        return typeB
+    }
+    if (typeB == NoType) {
         return typeA
     }
     TODO("Between $typeA and $typeB")

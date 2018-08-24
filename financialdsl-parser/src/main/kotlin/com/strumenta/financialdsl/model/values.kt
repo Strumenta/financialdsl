@@ -1,8 +1,6 @@
 package com.strumenta.financialdsl.model
 
-import com.strumenta.financialdsl.interpreter.EvaluationContext
-import com.strumenta.financialdsl.interpreter.PeriodValue
-import com.strumenta.financialdsl.interpreter.evaluate
+import com.strumenta.financialdsl.interpreter.*
 import java.time.Month
 
 enum class Granularity(val value: Int) {
@@ -18,7 +16,7 @@ abstract class Value(open val type: Type, val granularity : Granularity) {
     abstract fun forPeriod(period: PeriodValue) : Value // this should be constant if the period is granular enough
 }
 
-abstract class ComposedValue(val members: Collection<Value>) : Value(members.commonSupertypeOfValues(), members.toList().minGranularity())
+abstract class ComposedValue(override val type: Type, val members: Collection<Value>) : Value(type, members.toList().minGranularity())
 
 private fun <E : Value> List<E>.minGranularity(): Granularity {
     return this.foldRight(Granularity.CONSTANT_GRANULARITY) { a, b -> min(a.granularity, b)}
@@ -45,24 +43,30 @@ data class TimeValue(val alternatives: List<TimeValueEntry>) : Value(alternative
         .foldRight(Granularity.CONSTANT_GRANULARITY) { a, b -> min(a,b)}) {
 
     override fun forPeriod(period: PeriodValue): Value {
-//            val type = this.type()
-//            when (type) {
-//                is PeriodicType -> {
-//                    when {
-//                        ctx.period.isYearly && type.periodicity == Periodicity.MONTHLY -> {
-//                            if (type.baseType == IntType) {
-//                                var sum = 0L
-//                                return IntValue(sum)
-//                            } else {
-//                                TODO()
-//                            }
-//                        }
-//                        else -> TODO("Periodic Type for period ${ctx.period} and periodicity ${type.periodicity}")
-//                    }
-//                }
-//                else -> TODO("TimeExpression of type $type")
-//            }
-        TODO()
+            val type = this.type
+            when (type) {
+                is PeriodicType -> {
+                    when {
+                        period.isYearly && type.periodicity == Periodicity.MONTHLY -> {
+                            if (type.baseType == IntType) {
+                                var sum = 0L
+                                for (month in Month.values()) {
+                                    sum += ((forPeriod(MonthlyPeriodValue(month, period.year)) as PeriodicValue).value as IntValue).value
+                                }
+                                return IntValue(sum)
+                            } else {
+                                TODO()
+                            }
+                        }
+                        period.isMonthly && type.periodicity == Periodicity.MONTHLY -> {
+                            // get the first alternative that is true
+                            return alternatives.find { it.periodValue.contains(period) }?.value?.forPeriod(period) ?: throw RuntimeException("No alternative found")
+                        }
+                        else -> TODO("Periodic Type for period $period and periodicity ${type.periodicity}")
+                    }
+                }
+                else -> TODO("TimeValue of type $type")
+            }
     }
 }
 
@@ -73,7 +77,14 @@ object NoValue : ConstantValue(NoType) {
     override fun toString() = "NoValue"
 }
 
-data class MonthDateValue(val month: Month, val year: Year) : ConstantValue(MonthDateType)
+abstract class DateValue(override val type: Type) : ConstantValue(type) {
+    open val month : Month
+        get() = throw UnsupportedOperationException()
+    open val year : Int
+        get() = throw UnsupportedOperationException()
+}
+
+data class MonthDateValue(override val month: Month, override val year: Int) : DateValue(MonthDateType)
 
 data class PeriodicValue(val value: Value, val periodicity: Periodicity) : ConstantValue(PeriodicType(value.type, periodicity))
 
