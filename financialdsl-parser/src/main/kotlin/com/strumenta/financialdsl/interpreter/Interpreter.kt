@@ -1,7 +1,10 @@
 package com.strumenta.financialdsl.interpreter
 
 import com.strumenta.financialdsl.model.*
+import com.strumenta.financialdsl.model.Date
+import java.sql.Ref
 import java.time.Month
+import java.util.*
 
 abstract class PeriodValue {
     abstract fun granularity(): Granularity
@@ -153,9 +156,76 @@ class LazyEntityFieldValue(val entityName: String, val fieldName: String, val ct
 
     private var calculatedValue : Value? = null
 
+    override fun unlazy() = calculatedValue()
+
     private fun calculatedValue() : Value {
         if (calculatedValue == null) {
-            calculatedValue = ctx.file.entity(entityName).field(fieldName).value?.evaluate(ctx) ?: NoValue
+            val field = ctx.file.entity(entityName).field(fieldName)
+            val explicitValue = field.value
+            if (explicitValue != null) {
+                calculatedValue = explicitValue.evaluate(ctx)
+            } else if (field.isSum) {
+                // Iterate through all entities to find all possible contributions
+                val contributions = LinkedList<Value>()
+
+                ctx.file.entities.forEach {entity ->
+                    entity.fields.filter { it.contribution != null }.forEach {field ->
+                        when (field.contribution!!.target) {
+                            is ReferenceExpr -> {
+                                if (entity.name == entityName && (field.contribution.target as ReferenceExpr).name.name == fieldName) {
+                                    contributions.add(ctx.entityRef(entity.name).get(field.name))
+                                }
+                            }
+                            is FieldAccessExpr -> {
+                                val fieldAccessExpr = field.contribution.target as FieldAccessExpr
+                                if (fieldAccessExpr.scope is ReferenceExpr) {
+                                    if (fieldAccessExpr.scope.name.name == entityName && fieldAccessExpr.fieldName == fieldName) {
+                                        contributions.add(ctx.entityRef(entity.name).get(field.name))
+                                    }
+                                } else {
+                                    TODO()
+                                }
+                            }
+                            else -> TODO(field.contribution.toString())
+                        }
+
+                    }
+                }
+
+                if (contributions.isEmpty()) {
+                    return NoValue
+                } else {
+                    val type = contributions.commonSupertypeOfValues()
+                    when (type) {
+                        is PeriodicType -> {
+                            if (type.baseType is IntType) {
+                                var result = 0L
+                                contributions.forEach {
+                                    var v = it.unlazy()
+                                    if (v is PeriodicValue) {
+                                        if (v.periodicity != type.periodicity) {
+                                            TODO()
+                                        }
+                                        if (v.value is IntValue) {
+                                            result += (v.value as IntValue).value
+                                        } else {
+                                            TODO()
+                                        }
+                                    } else {
+                                        TODO("Not periodic value but $it")
+                                    }
+                                }
+                                return PeriodicValue(IntValue(result), type.periodicity)
+                            } else {
+                                TODO()
+                            }
+                        }
+                        else -> TODO(type.toString())
+                    }
+                }
+            } else {
+                TODO()
+            }
         }
         return calculatedValue!!
     }

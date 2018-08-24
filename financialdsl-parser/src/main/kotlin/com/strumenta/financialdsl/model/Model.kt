@@ -87,7 +87,14 @@ data class Entity(override val name: String,
 }
 
 data class EntityField(override val name: String,
-                       val value: Expression?, override val position: Position? = null) : Node(position), Named
+                       val value: Expression?,
+                       val isSum: Boolean,
+                       val contribution: Contribution?,
+                       override val position: Position? = null) : Node(position), Named
+
+data class Contribution(val target: Expression, val byShare: Boolean, override val position: Position? = null)
+    : Node(position)
+
 
 data class Tax(override val name: String,
                val target: EntityTypeRef,
@@ -128,3 +135,5 @@ data class ReferenceExpr(val name: ReferenceByName<Named>, override val position
 data class SharesMapExpr(val shares: List<Share>, override val position: Position? = null) : Expression(position)
 
 class Share(val owner: Expression, val shares: Expression, override val position: Position? = null) : Expression(position)
+
+data class FieldAccessExpr(val scope: Expression, val fieldName: String, override val position: Position? = null) : Expression(position)

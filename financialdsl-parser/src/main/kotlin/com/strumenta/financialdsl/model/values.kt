@@ -20,6 +20,9 @@ interface Value {
     val type: Type
     val granularity : Granularity
     abstract fun forPeriod(period: PeriodValue) : Value
+    fun unlazy(): Value {
+        return this
+    }
 }
 
 abstract class ValueImpl(override val type: Type, override val granularity : Granularity) : Value {

@@ -42,7 +42,10 @@ fun TopLevelDeclarationContext.toAst(): TopLevelDeclaration {
 }
 
 private fun EntityDeclarationStmtContext.toAst(): EntityField {
-    return EntityField(this.name!!.text!!, this.value?.toAst())
+    return EntityField(this.name!!.text!!, this.value?.toAst(),
+            this.SUM() != null,
+            if (this.contributed == null) null else Contribution(this.contributed!!.toAst(), this.SHARE() != null),
+            toPosition())
 }
 
 private fun ExpressionContext.toAst(): Expression {
@@ -81,6 +84,7 @@ private fun ExpressionContext.toAst(): Expression {
         }
         is ReferenceExprContext -> ReferenceExpr(ReferenceByName(this.name!!.text!!), toPosition())
         is SharesMapExprContext -> SharesMapExpr(this.entries.map { it.toAst() }, toPosition())
+        is FieldAccessExprContext -> FieldAccessExpr(this.findExpression()!!.toAst(), this.fieldName!!.text!!)
         else -> TODO(this.javaClass.canonicalName)
     }
 }
