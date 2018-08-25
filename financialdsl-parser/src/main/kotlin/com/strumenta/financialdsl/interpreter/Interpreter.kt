@@ -54,7 +54,11 @@ data class CompanyValues(override val ctx : EvaluationContext,
     }
 }
 
-data class EvaluationResult(val companies: List<CompanyValues>, val persons: List<PersonValues>)
+data class EvaluationResult(val companies: List<CompanyValues>, val persons: List<PersonValues>) {
+    fun entity(name: String): EntityValues {
+        return (companies + persons).find { it.name == name }!!
+    }
+}
 
 //class LazyGranularity(val lambda: () -> Granularity) : Granularity {
 //

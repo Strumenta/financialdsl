@@ -2,7 +2,7 @@ package com.strumenta.financialdsl.model
 
 import com.strumenta.financialdsl.FinancialDSLLexer
 import com.strumenta.financialdsl.FinancialDSLParser
-import com.strumenta.financialdsl.interpreter.EvaluationContext
+import com.strumenta.financialdsl.model.*
 import com.strumenta.kotlinmultiplatform.BitSet
 import me.tomassetti.kolasu.model.*
 import org.antlr.v4.kotlinruntime.*

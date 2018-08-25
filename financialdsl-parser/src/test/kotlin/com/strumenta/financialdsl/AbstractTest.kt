@@ -5,17 +5,10 @@ import com.strumenta.kotlinmultiplatform.BitSet
 import org.antlr.v4.kotlinruntime.*
 import org.antlr.v4.kotlinruntime.atn.ATNConfigSet
 import org.antlr.v4.kotlinruntime.dfa.DFA
-import java.util.*
-import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.test.fail
 
-private val Token.typeName
-    get() = if (this.type == -1) "EOF" else FinancialDSLLexer.VOCABULARY.getSymbolicName(this.type)
-
-class LexingTest {
-
-    private fun assertLexedWithoutErrors(exampleName: String) : List<Token> {
+abstract class AbstractTest {
+    protected fun assertParsedWithoutErrors(exampleName: String) : FinancialDSLParser.FinancialDSLFileContext {
         val inputStream = LexingTest::class.java.getResourceAsStream("/$exampleName.fin")
         val input = CharStreams.fromStream(inputStream)
         val lexer = FinancialDSLLexer(input)
@@ -33,43 +26,16 @@ class LexingTest {
             }
 
             override fun syntaxError(recognizer: Recognizer<*, *>, offendingSymbol: Any?, line: Int, charPositionInLine: Int, msg: String, e: RecognitionException?) {
-                fail("Syntax error: $msg at $line:$charPositionInLine")
+                e?.printStackTrace()
+                fail("Syntax error: $msg at $line:$charPositionInLine, $offendingSymbol, $e")
             }
 
         }
         lexer.removeErrorListeners()
         lexer.addErrorListener(errorListener)
-        val tokens = LinkedList<Token>()
-        do {
-            tokens.add(lexer.nextToken())
-        } while (tokens.last.type != -1)
-        return tokens
-    }
-
-    @Test
-    fun parseCompanyTypesSimplified() {
-        var tokens = assertLexedWithoutErrors("company_types_1")
-        tokens = tokens.filter { it.channel == 0 }
-        println(tokens.map { it.typeName })
-        assertEquals(listOf("COMPANY", "TYPE", "ID", "LBRACE", "RBRACE", "EOF"), tokens.map { it.typeName })
-    }
-
-    @Test
-    fun parseCompanyTypes() {
-        var tokens = assertLexedWithoutErrors("company_types")
-        tokens = tokens.filter { it.channel == 0 }
-        println(tokens.map { it.typeName })
-        assertEquals(listOf("COMPANY", "TYPE", "ID", "LBRACE", "ID", "IS", "AMOUNT", "ID", "IS", "AMOUNT", "EQUAL",
-                "ID", "PLUS", "ID", "ID", "IS", "AMOUNT", "RBRACE", "EOF"), tokens.map { it.typeName })
-    }
-
-    @Test
-    fun parseCompany() {
-        val tokens = assertLexedWithoutErrors("company")
-    }
-
-    @Test
-    fun parsePerson() {
-        val tokens = assertLexedWithoutErrors("person")
+        val parser = FinancialDSLParser(CommonTokenStream(lexer))
+        parser.removeErrorListeners()
+        parser.addErrorListener(errorListener)
+        return parser.financialDSLFile()
     }
 }
