@@ -3,6 +3,7 @@ package com.strumenta.financialdsl.interpreter
 import com.strumenta.financialdsl.interpreter.Granularity.MONTHLY_GRANULARITY
 import com.strumenta.financialdsl.model.*
 import com.strumenta.financialdsl.model.Date
+import com.strumenta.financialdsl.model.Periodicity.MONTHLY
 import java.time.Month
 import java.util.*
 
@@ -120,39 +121,18 @@ fun Expression.evaluate(ctx: EvaluationContext, period: PeriodValue): Value {
             if (onlyRelevantClause != null) {
                 return onlyRelevantClause.value.evaluate(ctx, period)
             }
-            val exprGranularity = this.granularity(ctx, period)
-            val periodGranularity = period.granularity()
 
-            return when {
-                exprGranularity == MONTHLY_GRANULARITY && periodGranularity == Granularity.YEARLY_GRANULARITY -> {
-                    val contributions = LinkedList<Value>()
-                    Month.values().forEach { month ->
-                        contributions.add(this.evaluate(ctx, MonthlyPeriodValue(month, period.year)))
-                    }
-                    sumValues(contributions)
+            val type = this.type()
+            if (type is PeriodicType && type.periodicity == MONTHLY && period.isYearly) {
+                val contributions = LinkedList<Value>()
+                Month.values().forEach { month ->
+                    val monthlyValue = this.evaluate(ctx, MonthlyPeriodValue(month, period.year))
+                    require(monthlyValue is PeriodicValue && monthlyValue.periodicity == MONTHLY)
+                    contributions.add((monthlyValue as PeriodicValue).value)
                 }
-                else -> TODO("Expr granularity $exprGranularity, period granularity $periodGranularity")
+                return sumValues(contributions)
             }
-
-            TODO(this.toString())
-//            val type = this.type()
-//            when (type) {
-//                is PeriodicType -> {
-//                    when {
-//                        ctx.period.isYearly && type.periodicity == Periodicity.MONTHLY -> {
-//                            if (type.baseType == IntType) {
-//                                var sum = 0L
-//                                return IntValue(sum)
-//                            } else {
-//                                TODO()
-//                            }
-//                        }
-//                        else -> TODO("Periodic Type for period ${ctx.period} and periodicity ${type.periodicity}")
-//                    }
-//                }
-//                else -> TODO("TimeExpression of type $type")
-//            }
-//            TimeValue(this.clauses.map { it.evaluate(ctx) })
+            TODO()
         }
         is PeriodicExpression -> PeriodicValue(this.value.evaluate(ctx, period), this.periodicity)
         else -> TODO(this.javaClass.canonicalName)
