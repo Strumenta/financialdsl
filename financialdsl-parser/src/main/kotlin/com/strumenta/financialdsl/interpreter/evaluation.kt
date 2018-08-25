@@ -1,6 +1,5 @@
 package com.strumenta.financialdsl.interpreter
 
-import com.strumenta.financialdsl.interpreter.Granularity.MONTHLY_GRANULARITY
 import com.strumenta.financialdsl.model.*
 import com.strumenta.financialdsl.model.Date
 import com.strumenta.financialdsl.model.Periodicity.MONTHLY
@@ -68,7 +67,8 @@ private fun EntityField.evaluateAsSum(entityName: String, ctx: EvaluationContext
 
     ctx.file.entities.forEach { entity ->
         entity.fields.filter { it.contribution != null }.forEach { field ->
-            when (field.contribution!!.target) {
+//            field.contribution!!.target
+//            when (field.contribution!!.target) {
 //                is ReferenceExpr -> {
 //                    if (entity.name == entityName && (field.contribution.target as ReferenceExpr).name.name == fieldName) {
 //                        contributions.add(ctx.entityRef(entity.name).get(field.name))
@@ -88,11 +88,13 @@ private fun EntityField.evaluateAsSum(entityName: String, ctx: EvaluationContext
 //                        TODO()
 //                    }
 //                }
-                else -> TODO(field.contribution.toString())
-            }
+//                else -> TODO(field.contribution.toString())
+            TODO()
+            //}
 
         }
     }
+    TODO()
 
     return sumValues(contributions)
 }

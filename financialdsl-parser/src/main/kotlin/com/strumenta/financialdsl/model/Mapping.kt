@@ -45,8 +45,17 @@ private fun EntityDeclarationStmtContext.toAst(): EntityField {
     return EntityField(this.name!!.text!!, this.value?.toAst(),
             this.SUM() != null,
             this.PARAMETER() != null,
-            if (this.contributed == null) null else Contribution(this.contributed!!.toAst(), this.SHARE() != null),
+            if (this.contributed == null) null else this.contributed!!.toAst(),
             toPosition())
+}
+
+private fun ContributionTargetContext.toAst(): Contribution {
+    return when (this) {
+        is SameEntityContributionTargetContext -> SameEntityContribution(this.fieldName!!.text!!, toPosition())
+        is OtherEntityContributionTargetContext -> OtherEntityContribution(this.fieldName!!.text!!, this.entityName!!.text!!, toPosition())
+        is OwnersContributionTargetContext -> OwnersContribution(this.fieldName!!.text!!, toPosition())
+        else -> TODO(this.javaClass.canonicalName)
+    }
 }
 
 private fun ExpressionContext.toAst(): Expression {

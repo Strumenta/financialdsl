@@ -34,10 +34,15 @@ cityDeclaration : name=ID
 entityDeclaration : name=ID IS target=entityType LBRACE (stmts+=entityDeclarationStmt)* RBRACE
                   ;
 
-entityDeclarationStmt : name=ID (IS type)?
+entityDeclarationStmt : (name=ID|name=OWNERS) (IS type)?
                         ((EQUAL value=expression)|(IN_ARROW PARAMETER)|(IN_ARROW SUM))?
-                        (OUT_ARROW CONTRIBUTES TO contributed=expression (BY SHARE)?)?
+                        (OUT_ARROW CONTRIBUTES TO contributed=contributionTarget)?
                       ;
+
+contributionTarget : fieldName=ID #sameEntityContributionTarget
+                   | fieldName=ID OF entityName=ID #otherEntityContributionTarget
+                   | fieldName=ID OF OWNERS #ownersContributionTarget
+                   ;
 
 companyTypeDeclaration : COMPANY TYPE name=ID LBRACE (stmts+=companyTypeDeclarationStmt)* RBRACE
                        ;

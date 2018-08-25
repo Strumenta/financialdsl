@@ -96,8 +96,12 @@ data class EntityField(override val name: String,
                        val contribution: Contribution?,
                        override val position: Position? = null) : Node(position), Named
 
-data class Contribution(val target: Expression, val byShare: Boolean, override val position: Position? = null)
+abstract class Contribution(override val position: Position? = null)
     : Node(position)
+
+data class SameEntityContribution(val fieldName: String, override val position: Position? = null) : Contribution(position)
+data class OtherEntityContribution(val fieldName: String, val entityName: String, override val position: Position? = null) : Contribution(position)
+data class OwnersContribution(val fieldName: String, override val position: Position? = null) : Contribution(position)
 
 
 data class Tax(override val name: String,

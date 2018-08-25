@@ -46,7 +46,7 @@ Strumenta is SRL {
     owners = [Federico at 66%, Gabriele at 34%]
     gross_profit is amount <- parameter
     personnel_costs is amount <- sum
-    net_profit = 500 -> contributes to income of owners by share
+    net_profit = 500 -> contributes to income of owners
 }
 
 tax IRAP on SRL {

@@ -39,6 +39,7 @@ EU                 : 'EU' ;
 BRACKETS           : 'brackets' ;
 ABOVE              : 'above' ;
 BY                 : 'by' ;
+OWNERS             : 'owners' ;
 
 // Identifiers
 ID                 : [A-Za-z][A-Za-z0-9_]* ;
