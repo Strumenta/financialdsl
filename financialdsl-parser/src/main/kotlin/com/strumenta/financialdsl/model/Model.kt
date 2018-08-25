@@ -82,7 +82,7 @@ data class Entity(override val name: String,
     val fieldNames: List<String>
         get() = fields.map { it.name }
 
-    fun field(name: String) : EntityField = fields.first { it.name == name }
+    fun field(name: String) : EntityField = fields.firstOrNull { it.name == name } ?: throw IllegalArgumentException("Cannot find field $name in entity ${this.name}")
 
     override fun candidatesForValues(): List<Named> {
         return fields.map { EntityFieldRef(name, it.name) }
@@ -142,6 +142,6 @@ data class ReferenceExpr(val name: ReferenceByName<Named>, override val position
 
 data class SharesMapExpr(val shares: List<Share>, override val position: Position? = null) : Expression(position)
 
-class Share(val owner: Expression, val shares: Expression, override val position: Position? = null) : Expression(position)
+class Share(val owner: String, val shares: Expression, override val position: Position? = null) : Expression(position)
 
 data class FieldAccessExpr(val scope: Expression, val fieldName: String, override val position: Position? = null) : Expression(position)

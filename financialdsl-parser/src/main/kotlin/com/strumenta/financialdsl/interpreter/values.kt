@@ -49,9 +49,11 @@ data class PercentageValue(val value: Double) : ConstantValue(PercentageType) {
 
 data class DecimalValue(val value: Double) : ConstantValue(DecimalType)
 
-data class IntValue(val value: Long) : ConstantValue(IntType)
+data class IntValue(val value: Long) : ConstantValue(IntType) {
+    fun toDecimal() = DecimalValue(value.toDouble())
+}
 
-data class SharesMapValue(val entries: Map<EntityValues, PercentageValue>) : ConstantValue(SharesMapType)
+//data class SharesMapValue(val entries: Map<EntityValues, PercentageValue>) : ConstantValue(SharesMapType)
 
 data class TimeValue(val alternatives: List<TimeValueEntry>) : ValueImpl(alternatives.map { it.value }.commonSupertypeOfValues(), alternatives
         .map { it.periodValue.granularity() }

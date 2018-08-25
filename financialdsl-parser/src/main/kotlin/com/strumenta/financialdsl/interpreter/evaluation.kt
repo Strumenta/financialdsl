@@ -67,6 +67,26 @@ private fun EntityField.evaluateAsSum(entityName: String, ctx: EvaluationContext
 
     ctx.file.entities.forEach { entity ->
         entity.fields.filter { it.contribution != null }.forEach { field ->
+            val c = field.contribution!!
+            when (c) {
+                is SameEntityContribution -> {
+                    if (entity.name == entityName && c.fieldName == this.name) {
+                        contributions.add(ctx.entityValues(entity.name, period).get(field.name))
+                    }
+                }
+                is OtherEntityContribution -> {
+                    if (c.entityName == entityName && c.fieldName == this.name) {
+                        contributions.add(ctx.entityValues(entity.name, period).get(field.name))
+                    }
+                }
+                is OwnersContribution -> {
+                    val owningPerc = ctx.entityValues(entity.name, period).share(entityName)
+                    if (owningPerc != PercentageValue.NOTHING) {
+                        contributions.add(multiplyValues(owningPerc, ctx.entityValues(entity.name, period).get(field.name)))
+                    }
+                }
+                else -> TODO(c.javaClass.canonicalName)
+            }
 //            field.contribution!!.target
 //            when (field.contribution!!.target) {
 //                is ReferenceExpr -> {
@@ -89,15 +109,19 @@ private fun EntityField.evaluateAsSum(entityName: String, ctx: EvaluationContext
 //                    }
 //                }
 //                else -> TODO(field.contribution.toString())
-            TODO()
             //}
 
         }
     }
-    TODO()
 
     return sumValues(contributions)
 }
+
+//private fun Contribution.percentageContributionTo(entityName: String): PercentageValue {
+//    when (this) {
+//        else -> TODO(this.javaClass.canonicalName)
+//    }
+//}
 
 ///
 /// Expression level
@@ -105,8 +129,8 @@ private fun EntityField.evaluateAsSum(entityName: String, ctx: EvaluationContext
 
 fun Expression.evaluate(ctx: EvaluationContext, period: PeriodValue): Value {
     return when (this) {
-        is SharesMapExpr -> SharesMapValue(this.shares.map {
-            it.owner.evaluate(ctx, period) as EntityValues to it.shares.evaluate(ctx, period) as PercentageValue
+        is SharesMapExpr -> SharesMap(this.shares.map {
+            it.owner to it.shares.evaluate(ctx, period) as PercentageValue
         }.toMap())
         is ReferenceExpr -> {
             val target = this.name.referred!!

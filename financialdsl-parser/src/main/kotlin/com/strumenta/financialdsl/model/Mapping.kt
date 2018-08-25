@@ -99,7 +99,7 @@ private fun ExpressionContext.toAst(): Expression {
     }
 }
 
-private fun ShareEntryContext.toAst() = Share(this.owner!!.toAst(), this.value!!.toAst(), toPosition())
+private fun ShareEntryContext.toAst() = Share(this.owner!!.text, this.value!!.toAst(), toPosition())
 
 private fun ValueInTimeContext.toAst() = TimeClause(this.findTimeClause()!!.toAst(), this.findExpression()!!.toAst(), toPosition())
 

@@ -161,6 +161,15 @@ fun sumValues(valueA: Value, valueB: Value) : Value {
         valueA is LazyEntityFieldValue || valueB is LazyEntityFieldValue -> {
             return sumValues(valueA.unlazy(), valueB.unlazy())
         }
+        valueA is DecimalValue && valueB is IntValue -> {
+            return sumValues(valueA, valueB.toDecimal())
+        }
+        valueA is IntValue && valueB is DecimalValue -> {
+            return sumValues(valueA.toDecimal(), valueB)
+        }
+        valueA is DecimalValue && valueB is DecimalValue -> {
+            return DecimalValue(valueA.value + valueB.value)
+        }
         else -> TODO("Sum ${valueA.type} and ${valueB.type} ${valueA.javaClass} ${valueB.javaClass}")
     }
 }
