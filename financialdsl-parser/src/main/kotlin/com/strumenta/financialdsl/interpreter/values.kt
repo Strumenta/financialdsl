@@ -1,13 +1,10 @@
-package com.strumenta.financialdsl.model
+package com.strumenta.financialdsl.interpreter
 
-import com.strumenta.financialdsl.interpreter.*
+import com.strumenta.financialdsl.model.Periodicity
+import java.time.LocalDate
 import java.time.Month
 
-interface Granularity {
-    val value : Int
-}
-
-enum class GranularityEnum(override val value: Int) : Granularity {
+enum class Granularity(val value: Int) {
     CONSTANT_GRANULARITY(4),
     YEARLY_GRANULARITY(3),
     MONTHLY_GRANULARITY(2),
@@ -19,7 +16,7 @@ fun min(a: Granularity, b: Granularity) = if (a.value <= b.value) a else b
 interface Value {
     val type: Type
     val granularity : Granularity
-    abstract fun forPeriod(period: PeriodValue) : Value
+    fun forPeriod(period: PeriodValue) : Value
     fun unlazy(): Value {
         return this
     }
@@ -29,13 +26,13 @@ abstract class ValueImpl(override val type: Type, override val granularity : Gra
     abstract override fun forPeriod(period: PeriodValue) : Value // this should be constant if the period is granular enough
 }
 
-abstract class ComposedValue(override val type: Type, val members: Collection<Value>) : ValueImpl(type, LazyGranularity { members.toList().minGranularity() })
+abstract class ComposedValue(override val type: Type, val members: Collection<Value>) : ValueImpl(type, members.toList().minGranularity())
 
 private fun <E : Value> List<E>.minGranularity(): Granularity {
-    return this.foldRight(GranularityEnum.CONSTANT_GRANULARITY as Granularity) { a, b -> min(a.granularity, b)}
+    return this.foldRight(Granularity.CONSTANT_GRANULARITY as Granularity) { a, b -> min(a.granularity, b) }
 }
 
-abstract class ConstantValue(override val type: Type) : ValueImpl(type, GranularityEnum.CONSTANT_GRANULARITY) {
+abstract class ConstantValue(override val type: Type) : ValueImpl(type, Granularity.CONSTANT_GRANULARITY) {
     override fun forPeriod(period: PeriodValue) = this
 }
 
@@ -58,7 +55,7 @@ data class SharesMapValue(val entries: Map<EntityValues, PercentageValue>) : Con
 
 data class TimeValue(val alternatives: List<TimeValueEntry>) : ValueImpl(alternatives.map { it.value }.commonSupertypeOfValues(), alternatives
         .map { it.periodValue.granularity() }
-        .foldRight(GranularityEnum.CONSTANT_GRANULARITY as Granularity) { a, b -> min(a,b)}) {
+        .foldRight(Granularity.CONSTANT_GRANULARITY as Granularity) { a, b -> min(a, b) }) {
 
     override fun forPeriod(period: PeriodValue): Value {
             val type = this.type
@@ -100,9 +97,13 @@ abstract class DateValue(override val type: Type) : ConstantValue(type) {
         get() = throw UnsupportedOperationException()
     open val year : Int
         get() = throw UnsupportedOperationException()
+    abstract val firstDay: LocalDate
 }
 
-data class MonthDateValue(override val month: Month, override val year: Int) : DateValue(MonthDateType)
+data class MonthDateValue(override val month: Month, override val year: Int) : DateValue(MonthDateType) {
+    override val firstDay: LocalDate
+        get() = LocalDate.of(year, month, 1)
+}
 
 data class PeriodicValue(val value: Value, val periodicity: Periodicity) : ConstantValue(PeriodicType(value.type, periodicity))
 
@@ -114,3 +115,5 @@ data class PeriodicValue(val value: Value, val periodicity: Periodicity) : Const
 //        return fieldValues.computeIfAbsent(fieldName) { entityDecl.field(fieldName).value?.evaluate(evaluationContext) ?: NoValue }
 //    }
 //}
+
+data class SharesMap(val shares: Map<String, PercentageValue>) : ConstantValue(SharesMapType)

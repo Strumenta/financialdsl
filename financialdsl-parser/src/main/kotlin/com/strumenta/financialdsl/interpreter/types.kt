@@ -1,4 +1,6 @@
-package com.strumenta.financialdsl.model
+package com.strumenta.financialdsl.interpreter
+
+import com.strumenta.financialdsl.model.*
 
 interface Type
 

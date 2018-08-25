@@ -1,7 +1,9 @@
-package com.strumenta.financialdsl.model
+package com.strumenta.financialdsl
 
+import com.strumenta.financialdsl.interpreter.IntValue
 import com.strumenta.financialdsl.interpreter.YearlyPeriodValue
 import com.strumenta.financialdsl.interpreter.evaluate
+import com.strumenta.financialdsl.model.Parser
 
 fun main(args: Array<String>) {
     val code = """countries {
@@ -85,13 +87,15 @@ tax IRPEF on person {
         }
         return
     }
-    val evaluationResult = parsingResult.ast?.evaluate(YearlyPeriodValue(2018), mapOf(Pair("Strumenta", "gross_profit") to IntValue(100_000)))
+    val evaluationResult = parsingResult.ast?.evaluate(
+            YearlyPeriodValue(2018),
+            mapOf(Pair("Strumenta", "gross_profit") to IntValue(100_000)))
     println("== Evaluation result ==")
     evaluationResult?.let {
         it.persons.forEach { person ->
             println("  == Person ${person.name} ==")
-            person.fieldValues.keys.sorted().forEach { fieldName ->
-                val fieldValue = person.fieldValues[fieldName]
+            person.fieldNames.sorted().forEach { fieldName ->
+                val fieldValue = person.get(fieldName)
                 println("    $fieldName: $fieldValue")
             }
         }
@@ -99,8 +103,8 @@ tax IRPEF on person {
     evaluationResult?.let {
         it.companies.forEach { company ->
             println("  == Company ${company.name} ==")
-            company.fieldValues.keys.sorted().forEach { fieldName ->
-                val fieldValue = company.fieldValues[fieldName]
+            company.fieldNames.sorted().forEach { fieldName ->
+                val fieldValue = company.get(fieldName)
                 println("    $fieldName: $fieldValue")
             }
         }

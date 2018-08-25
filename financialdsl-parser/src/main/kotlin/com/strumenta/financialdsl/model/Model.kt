@@ -79,6 +79,9 @@ data class Entity(override val name: String,
                   val type: EntityTypeRef,
                   val fields: List<EntityField>,
                   override val position: Position? = null) : TopLevelDeclaration(position), Named, Scope {
+    val fieldNames: List<String>
+        get() = fields.map { it.name }
+
     fun field(name: String) : EntityField = fields.first { it.name == name }
 
     override fun candidatesForValues(): List<Named> {

@@ -2,139 +2,33 @@ package com.strumenta.financialdsl.interpreter
 
 import com.strumenta.financialdsl.model.*
 import com.strumenta.financialdsl.model.Date
-import java.time.Month
 import java.util.*
-
-abstract class PeriodValue {
-    abstract fun granularity(): Granularity
-    abstract fun contains(period: PeriodValue): Boolean
-
-    open val isYearly : Boolean
-        get() = false
-    open val isMonthly : Boolean
-        get() = false
-    open val year: Int
-        get() = throw UnsupportedOperationException()
-    open val month: Month
-        get() = throw UnsupportedOperationException()
-}
-
-class YearlyPeriodValue(override val year: Int) : PeriodValue() {
-    override val isYearly: Boolean
-        get() = true
-
-    override fun granularity() = GranularityEnum.YEARLY_GRANULARITY
-
-    override fun toString() = "YearlyPeriodValue($year)"
-
-    override fun contains(period: PeriodValue): Boolean {
-        if (period.isYearly) {
-            return period.year == this.year
-        }
-        if (period.isMonthly) {
-            return period.year == this.year
-        }
-        return false
-    }
-}
-
-class MonthlyPeriodValue(override val month: Month, override val year: Int) : PeriodValue() {
-    override val isMonthly: Boolean
-        get() = true
-
-    override fun granularity() = GranularityEnum.MONTHLY_GRANULARITY
-
-    override fun toString() = "MonthlyPeriodValue($month $year)"
-
-    override fun contains(period: PeriodValue): Boolean {
-        if (period.isMonthly) {
-            return period.year == this.year && period.month == this.month
-        }
-        return false
-    }
-}
-
-data class BeforePeriodValue(val date: DateValue) : PeriodValue() {
-    override fun granularity(): Granularity {
-        return date.granularity
-    }
-
-    override fun contains(period: PeriodValue): Boolean {
-        if (period.isYearly) {
-            TODO()
-        }
-        if (period.isMonthly) {
-            if (date.year > period.year) {
-                return true
-            }
-            if (date.year == period.year && date.month > period.month) {
-                return true
-            }
-            return false
-        }
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-}
-
-data class SincePeriodValue(val date: DateValue) : PeriodValue(){
-    override fun granularity(): Granularity {
-        return date.granularity
-    }
-    override fun contains(period: PeriodValue): Boolean {
-        if (period.isYearly) {
-            TODO()
-        }
-        if (period.isMonthly) {
-            if (date.year < period.year) {
-                return true
-            }
-            if (date.year == period.year && date.month <= period.month) {
-                return true
-            }
-            return false
-        }
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-}
-data class AfterPeriodValue(val date: DateValue) : PeriodValue(){
-    override fun granularity(): Granularity {
-        return date.granularity
-    }
-    override fun contains(period: PeriodValue): Boolean {
-        if (period.isYearly) {
-            TODO()
-        }
-        if (period.isMonthly) {
-            if (date.year < period.year) {
-                return true
-            }
-            if (date.year == period.year && date.month < period.month) {
-                return true
-            }
-            return false
-        }
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-}
+import kotlin.collections.HashMap
 
 abstract class EntityValues(
         open val ctx : EvaluationContext,
-        open val name: String, open val fieldValues: Map<String, Value>) : ComposedValue(EntityType, fieldValues.values) {
+        open val name: String, open val fieldEvaluator: (String) -> Value) : Value {
+
+    private val fieldValues = HashMap<String, Value>()
+
+    override val type: Type
+        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+    override val granularity: Granularity
+        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+    val fieldNames: List<String>
+        get() = ctx.file.entity(name).fieldNames
+
     fun get(name: String): Value {
-        return fieldValues[name]!!
+        return fieldValues.computeIfAbsent(name, fieldEvaluator)
     }
 
     abstract fun share(entityName: String): PercentageValue
 }
 
-data class Percentage(val value: Double) : ConstantValue(PercentageType)
-
-data class SharesMap(val shares: Map<String, PercentageValue>) : ConstantValue(SharesMapType)
-
 data class PersonValues(override val ctx : EvaluationContext,
-                        override val name: String, override val fieldValues: Map<String, Value>) : EntityValues(ctx, name, fieldValues) {
-    override fun forPeriod(period: PeriodValue): PersonValues {
-        return PersonValues(ctx, name, fieldValues.mapValues { it.value.forPeriod(period) })
+                        override val name: String, override val fieldEvaluator: (String) -> Value) : EntityValues(ctx, name, fieldEvaluator) {
+    override fun forPeriod(period: PeriodValue): Value {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     override fun share(entityName: String): PercentageValue {
@@ -148,11 +42,11 @@ data class PersonValues(override val ctx : EvaluationContext,
 
 data class CompanyValues(override val ctx : EvaluationContext,
                          override val name: String,
-                         override val fieldValues: Map<String, Value>, val companyType: CompanyType) : EntityValues(ctx, name, fieldValues) {
+                         override val fieldEvaluator: (String) -> Value, val companyType: CompanyType) : EntityValues(ctx, name, fieldEvaluator) {
     val ownership
-        get() = fieldValues["owners"] as SharesMap
+        get() = get("owners") as SharesMap
     override fun forPeriod(period: PeriodValue): CompanyValues {
-        return CompanyValues(ctx, name, fieldValues.mapValues { it.value.forPeriod(period) }, companyType)
+        TODO()
     }
 
     override fun share(entityName: String): PercentageValue {
@@ -162,19 +56,18 @@ data class CompanyValues(override val ctx : EvaluationContext,
 
 data class EvaluationResult(val companies: List<CompanyValues>, val persons: List<PersonValues>)
 
-object LazyType : Type
-class LazyGranularity(val lambda: () -> Granularity) : Granularity {
-
-    private var calculated : Granularity? = null
-
-    override val value: Int
-        get() {
-            if (calculated == null) {
-                calculated = lambda.invoke()
-            }
-            return calculated!!.value
-        }
-}
+//class LazyGranularity(val lambda: () -> Granularity) : Granularity {
+//
+//    private var calculated : Granularity? = null
+//
+//    override val value: Int
+//        get() {
+//            if (calculated == null) {
+//                calculated = lambda.invoke()
+//            }
+//            return calculated!!.value
+//        }
+//}
 
 class LazyEntityFieldValue(val entityName: String, val fieldName: String, val ctx: EvaluationContext) : Value {
 
@@ -183,52 +76,53 @@ class LazyEntityFieldValue(val entityName: String, val fieldName: String, val ct
     override fun unlazy() = calculatedValue()
 
     private fun calculatedValue() : Value {
-        if (calculatedValue == null) {
-            val field = ctx.file.entity(entityName).field(fieldName)
-            val explicitValue = field.value
-            if (explicitValue != null) {
-                calculatedValue = explicitValue.evaluate(ctx)
-            } else if (field.isSum) {
-
-                // Iterate through all entities to find all possible contributions
-                val contributions = LinkedList<Value>()
-
-                ctx.file.entities.forEach { entity ->
-                    entity.fields.filter { it.contribution != null }.forEach { field ->
-                        when (field.contribution!!.target) {
-                            is ReferenceExpr -> {
-                                if (entity.name == entityName && (field.contribution.target as ReferenceExpr).name.name == fieldName) {
-                                    contributions.add(ctx.entityRef(entity.name).get(field.name))
-                                }
-                            }
-                            is FieldAccessExpr -> {
-                                val fieldAccessExpr = field.contribution.target as FieldAccessExpr
-                                if (fieldAccessExpr.scope is ReferenceExpr) {
-                                    if (fieldAccessExpr.scope.name.name == entityName && fieldAccessExpr.fieldName == fieldName) {
-                                        contributions.add(ctx.entityRef(entity.name).get(field.name))
-                                    }
-                                    if (fieldAccessExpr.scope.name.name == "owners" && fieldAccessExpr.fieldName == fieldName && field.contribution.byShare) {
-                                        val percentageValue = ctx.entityRef(entityName).share(entityName)
-                                        contributions.add(multiplyValues(percentageValue, ctx.entityRef(entity.name).get(field.name)))
-                                    }
-                                } else {
-                                    TODO()
-                                }
-                            }
-                            else -> TODO(field.contribution.toString())
-                        }
-
-                    }
-                }
-
-                return sumValues(contributions)
-            } else if (field.isParameter) {
-                return ctx.parameterValue(entityName, fieldName)
-            } else {
-                TODO("Field $entityName.$fieldName")
-            }
-        }
-        return calculatedValue!!
+        TODO()
+//        if (calculatedValue == null) {
+//            val field = ctx.file.entity(entityName).field(fieldName)
+//            val explicitValue = field.value
+//            if (explicitValue != null) {
+//                calculatedValue = explicitValue.evaluate(ctx)
+//            } else if (field.isSum) {
+//
+//                // Iterate through all entities to find all possible contributions
+//                val contributions = LinkedList<Value>()
+//
+//                ctx.file.entities.forEach { entity ->
+//                    entity.fields.filter { it.contribution != null }.forEach { field ->
+//                        when (field.contribution!!.target) {
+//                            is ReferenceExpr -> {
+//                                if (entity.name == entityName && (field.contribution.target as ReferenceExpr).name.name == fieldName) {
+//                                    contributions.add(ctx.entityRef(entity.name).get(field.name))
+//                                }
+//                            }
+//                            is FieldAccessExpr -> {
+//                                val fieldAccessExpr = field.contribution.target as FieldAccessExpr
+//                                if (fieldAccessExpr.scope is ReferenceExpr) {
+//                                    if (fieldAccessExpr.scope.name.name == entityName && fieldAccessExpr.fieldName == fieldName) {
+//                                        contributions.add(ctx.entityRef(entity.name).get(field.name))
+//                                    }
+//                                    if (fieldAccessExpr.scope.name.name == "owners" && fieldAccessExpr.fieldName == fieldName && field.contribution.byShare) {
+//                                        val percentageValue = ctx.entityRef(entityName).share(entityName)
+//                                        contributions.add(multiplyValues(percentageValue, ctx.entityRef(entity.name).get(field.name)))
+//                                    }
+//                                } else {
+//                                    TODO()
+//                                }
+//                            }
+//                            else -> TODO(field.contribution.toString())
+//                        }
+//
+//                    }
+//                }
+//
+//                return sumValues(contributions)
+//            } else if (field.isParameter) {
+//                return ctx.parameterValue(entityName, fieldName)
+//            } else {
+//                TODO("Field $entityName.$fieldName")
+//            }
+//        }
+//        return calculatedValue!!
     }
 
     override val type: Type
@@ -248,7 +142,8 @@ fun sumValues(valueA: Value, valueB: Value) : Value {
             val periodsB = valueB.alternatives.map { it.periodValue }
             if (periodsA == periodsB) {
                 return TimeValue(periodsA.mapIndexed { index, period ->
-                    TimeValueEntry(period, sumValues(valueA.alternatives[index].value, valueB.alternatives[index].value)) })
+                    TimeValueEntry(period, sumValues(valueA.alternatives[index].value, valueB.alternatives[index].value))
+                })
             } else {
                 TODO("Entries: $periodsA and $periodsB")
             }
@@ -326,84 +221,32 @@ fun sumValues(elements: List<Value>) : Value {
 }
 
 class EvaluationContext(val file: FinancialDSLFile, val parameters: Map<Pair<String, String>, Value>) {
-    private val entityRefs = HashMap<String, EntityValues>()
-    init {
-        file.companies.forEach { entityRefs[it.name] = it.evaluateCompany(this) }
-        file.persons.forEach { entityRefs[it.name] = it.evaluatePerson(this) }
+//    private val entityRefs = HashMap<String, EntityValues>()
+//    init {
+//        file.companies.forEach { entityRefs[it.name] = it.evaluateCompany(this) }
+//        file.persons.forEach { entityRefs[it.name] = it.evaluatePerson(this) }
+//    }
+//
+//    fun entityRef(name: String) = entityRefs[name] ?: throw IllegalArgumentException("No entity named $name found")
+//    fun parameterValue(entityName: String, fieldName: String): Value {
+//        return parameters[Pair(entityName, fieldName)]!!
+//    }
+
+    fun entityValues(name: String, period: PeriodValue): EntityValues {
+        return file.entities.find { it.name == name }?.evaluate(this, period) ?: throw IllegalArgumentException("Unknown entity $name")
     }
 
-    fun entityRef(name: String) = entityRefs[name] ?: throw IllegalArgumentException("No entity named $name found")
-    fun parameterValue(entityName: String, fieldName: String): Value {
+    fun parameterValue(entityName: String, fieldName: String, period: PeriodValue): Value {
+        // The parameters are assumed to be constant
         return parameters[Pair(entityName, fieldName)]!!
     }
 }
 
-fun FinancialDSLFile.evaluate(period: PeriodValue, parameters: Map<Pair<String, String>, Value>) : EvaluationResult {
-    val ctx = EvaluationContext(this, parameters)
-    return EvaluationResult(
-            this.companies.map { ctx.entityRef(it.name).forPeriod(period) as CompanyValues },
-            this.persons.map { ctx.entityRef(it.name).forPeriod(period) as PersonValues }
-    )
+private fun TimeClause.evaluate(ctx: EvaluationContext, period: PeriodValue): TimeValueEntry {
+    return TimeValueEntry(this.period.evaluate(ctx, period), this.value.evaluate(ctx, period))
 }
 
-private fun Entity.evaluatePerson(ctx: EvaluationContext): PersonValues {
-    return PersonValues(ctx, this.name, this.fields.map {
-        it.name to LazyEntityFieldValue(this.name, it.name, ctx)
-    }.toMap())
-}
-
-private fun Entity.evaluateCompany(ctx: EvaluationContext): CompanyValues {
-    return CompanyValues(
-            ctx,
-            this.name,
-            this.fields.map { it.name to LazyEntityFieldValue(this.name, it.name, ctx) }.toMap(),
-            (this.type as CompanyTypeRef).ref.referred!!)
-}
-
-fun Expression.evaluate(ctx: EvaluationContext): Value {
-    return when (this) {
-        is SharesMapExpr -> SharesMapValue(this.shares.map {
-            it.owner.evaluate(ctx) as EntityValues to it.shares.evaluate(ctx) as PercentageValue }.toMap())
-        is ReferenceExpr -> {
-            val target = this.name.referred!!
-            when (target) {
-                is Entity -> ctx.entityRef(target.name)
-                is EntityFieldRef -> ctx.entityRef(target.entityName).get(target.name)
-                else -> TODO("ReferenceExpr to ${target.javaClass.canonicalName}")
-            }
-        }
-        is PercentageLiteral -> PercentageValue(this.value)
-        is IntLiteral -> IntValue(this.value)
-        is TimeExpression -> {
-//            val type = this.type()
-//            when (type) {
-//                is PeriodicType -> {
-//                    when {
-//                        ctx.period.isYearly && type.periodicity == Periodicity.MONTHLY -> {
-//                            if (type.baseType == IntType) {
-//                                var sum = 0L
-//                                return IntValue(sum)
-//                            } else {
-//                                TODO()
-//                            }
-//                        }
-//                        else -> TODO("Periodic Type for period ${ctx.period} and periodicity ${type.periodicity}")
-//                    }
-//                }
-//                else -> TODO("TimeExpression of type $type")
-//            }
-            TimeValue(this.clauses.map { it.evaluate(ctx) })
-        }
-        is PeriodicExpression -> PeriodicValue(this.value.evaluate(ctx), this.periodicity)
-        else -> TODO(this.javaClass.canonicalName)
-    }
-}
-
-private fun TimeClause.evaluate(ctx: EvaluationContext): TimeValueEntry {
-    return TimeValueEntry(this.period.evaluate(ctx), this.value.evaluate(ctx))
-}
-
-private fun Period.evaluate(ctx: EvaluationContext): PeriodValue {
+fun Period.evaluate(ctx: EvaluationContext, period: PeriodValue): PeriodValue {
     return when (this) {
         is BeforePeriod -> BeforePeriodValue(this.date.evaluate(ctx) as DateValue)
         is SincePeriod -> SincePeriodValue(this.date.evaluate(ctx) as DateValue)
