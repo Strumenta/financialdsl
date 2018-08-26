@@ -47,6 +47,9 @@ data class FinancialDSLFile(val declarations : List<TopLevelDeclaration>,
     @Derived val cities : List<City>
         get() = citiesLists.foldRight(emptyList()) { el, acc -> el.cities + acc }
 
+    @Derived val taxes : List<Tax>
+        get() = declarations.filterIsInstance(Tax::class.java)
+
     override fun candidatesForValues(): List<Named> {
         return listOf<List<Named>>(entities, countries, regions, cities).flatten()
     }
@@ -144,7 +147,11 @@ data class OwnersContribution(val fieldName: String, override val position: Posi
 
 data class Tax(override val name: String,
                val target: EntityTypeRef,
-               override val position: Position? = null) : TopLevelDeclaration(position), Named
+               override val position: Position? = null) : TopLevelDeclaration(position), Named {
+    fun isApplicableTo(entity: Entity): Boolean {
+        TODO()
+    }
+}
 
 abstract class Period(override val position: Position? = null) : Node(position)
 class BeforePeriod(val date: Date, override val position: Position? = null) : Period(position)

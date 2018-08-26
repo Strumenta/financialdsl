@@ -65,7 +65,10 @@ data class EvaluationResult(
         val countries: List<Country>,
         val regions: List<Region>,
         val cities: List<City>,
-        val companies: List<CompanyValues>, val persons: List<PersonValues>) {
+        val companies: List<CompanyValues>,
+        val persons: List<PersonValues>,
+        val taxes: List<Tax>,
+        val taxPayments: List<TaxPayment>) {
 
     fun entity(name: String): EntityValues {
         return (companies + persons).find { it.name == name }!!
@@ -77,9 +80,8 @@ data class EvaluationResult(
     fun city(name: String) = cities.find { it.name == name } ?: throw IllegalArgumentException("No city named $name found")
     fun person(name: String) = persons.find { it.name == name}!!
     fun company(name: String) = companies.find { it.name == name}!!
-    fun tax(entityName: String, taxName: String): TaxPayment {
-        TODO()
-    }
+    fun tax(name: String) = taxes.find { it.name == name}!!
+    fun tax(entityName: String, taxName: String) = taxPayments.find { it.tax.name == taxName && it.entity.name == entityName }!!
 }
 
 class LazyEntityFieldValue(val entityName: String, val fieldName: String, val ctx: EvaluationContext) : Value {
@@ -219,6 +221,11 @@ class EvaluationContext(val file: FinancialDSLFile, val parameters: Map<Pair<Str
     fun parameterValue(entityName: String, fieldName: String, period: PeriodValue): Value {
         // The parameters are assumed to be constant
         return parameters[Pair(entityName, fieldName)]!!
+    }
+
+    fun taxPayments(tax: Tax): List<TaxPayment> {
+        return file.entities.filter { tax.isApplicableTo(it) }.map { TODO() } //TaxPayment }
+        //TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }
 
