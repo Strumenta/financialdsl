@@ -1,7 +1,6 @@
 package com.strumenta.financialdsl.model
 
-import com.strumenta.financialdsl.interpreter.EvaluationContext
-import com.strumenta.financialdsl.interpreter.PeriodValue
+import com.strumenta.financialdsl.interpreter.*
 import me.tomassetti.kolasu.model.*
 import me.tomassetti.kolasu.model.Position
 import java.time.Month
@@ -58,6 +57,10 @@ data class FinancialDSLFile(val declarations : List<TopLevelDeclaration>,
 
     fun entity(name: String): Entity {
         return entities.first { it.name == name }
+    }
+
+    fun tax(name: String): Tax {
+        return taxes.first { it.name == name }
     }
 }
 
@@ -156,7 +159,8 @@ data class OwnersContribution(val fieldName: String, override val position: Posi
 
 data class Tax(override val name: String,
                val target: EntityTypeRef,
-               override val position: Position? = null) : TopLevelDeclaration(position), Named {
+               val fields: List<EntityField>,
+               override val position: Position? = null) : TopLevelDeclaration(position), Named, Scope {
 
     fun isApplicableTo(entity: Entity): Boolean {
         return when {
@@ -166,10 +170,18 @@ data class Tax(override val name: String,
         }
     }
 
-    fun amountToPay(entity: Entity, evaluationContext: EvaluationContext, period: PeriodValue): Double {
-        TODO()
+    fun amountToPay(entity: Entity, ctx: EvaluationContext, period: PeriodValue): Double {
+        val taxValues = ctx.taxValues(name, entity.name, period)
+        val taxable = taxValues.get("taxable") as DecimalValue
+        val rate = taxValues.get("rate") as PercentageValue
+        return (multiplyValues(taxable, rate) as DecimalValue).value
     }
 
+    fun field(name: String) : EntityField = fields.firstOrNull { it.name == name } ?: throw IllegalArgumentException("Cannot find field $name in entity ${this.name}")
+
+    override fun candidatesForValues(): List<Named> {
+        return fields.map { EntityFieldRef(name, it.name) }
+    }
 }
 
 abstract class Period(override val position: Position? = null) : Node(position)

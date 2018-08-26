@@ -99,6 +99,18 @@ private fun EntityField.evaluateAsSum(entityName: String, ctx: EvaluationContext
 }
 
 ///
+/// Tax level
+///
+
+fun Tax.evaluate(entityName: String, ctx: EvaluationContext, period: PeriodValue): TaxValues {
+    val fieldEvaluator : (String) -> Value = { fieldName ->
+        val field = ctx.file.tax(this.name).field(fieldName)
+        field.evaluate(this.name, ctx, period)
+    }
+    return TaxValues(ctx, this.name, entityName, fieldEvaluator)
+}
+
+///
 /// Expression level
 ///
 

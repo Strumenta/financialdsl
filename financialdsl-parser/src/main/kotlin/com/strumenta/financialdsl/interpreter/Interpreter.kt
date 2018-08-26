@@ -30,6 +30,30 @@ abstract class EntityValues(
     abstract fun share(entityName: String): PercentageValue
 }
 
+data class TaxValues (
+        open val ctx : EvaluationContext,
+        open val name: String,
+        val entityName: String,
+        open val fieldEvaluator: (String) -> Value) : Value {
+    override fun forPeriod(period: PeriodValue): Value {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override val type: Type
+        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+    override val granularity: Granularity
+        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+
+    private val fieldValues = HashMap<String, Value>()
+
+    val fieldNames: List<String>
+        get() = ctx.file.entity(name).fieldNames
+
+    fun get(name: String): Value {
+        return fieldValues.computeIfAbsent(name, fieldEvaluator)
+    }
+}
+
 data class PersonValues(override val ctx : EvaluationContext,
                         override val name: String, override val fieldEvaluator: (String) -> Value) : EntityValues(ctx, name, fieldEvaluator) {
     override fun forPeriod(period: PeriodValue): Value {
@@ -227,6 +251,10 @@ class EvaluationContext(val file: FinancialDSLFile, val parameters: Map<Pair<Str
         return file.entities.filter { tax.isApplicableTo(it) }.map { entity ->
             TaxPayment(entity, tax, tax.amountToPay(entity, this, period))
         }
+    }
+
+    fun taxValues(taxName: String, entityName: String, period: PeriodValue): TaxValues {
+        return file.taxes.find { it.name == taxName }?.evaluate(entityName, this, period) ?: throw IllegalArgumentException("Unknown tax $taxName")
     }
 }
 

@@ -35,10 +35,15 @@ fun TopLevelDeclarationContext.toAst(): TopLevelDeclaration {
             Tax(
                     it.name!!.text!!,
                     it.findEntityType()!!.toAst(),
+                    it.stmts.map { it.toAst() },
                     toPosition())
         }
         else -> TODO(this.javaClass.canonicalName)
     }
+}
+
+private fun TaxDeclarationStmtContext.toAst(): EntityField {
+    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 }
 
 private fun EntityDeclarationStmtContext.toAst(): EntityField {
