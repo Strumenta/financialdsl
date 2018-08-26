@@ -101,7 +101,6 @@ class GeoTest : AbstractTest(){
             }
         """.trimIndent())
         val res = model.ast!!.evaluate(YearlyPeriodValue(2018), emptyMap())
-        println(res.person("Federico").get("city"))
         assertEquals("Torino", res.person("Federico").city.name)
         assertEquals("Piedmont", res.person("Federico").region.name)
         assertEquals("Italy", res.person("Federico").country.name)
@@ -135,7 +134,6 @@ class GeoTest : AbstractTest(){
             }
         """.trimIndent())
         val res = model.ast!!.evaluate(YearlyPeriodValue(2018), emptyMap())
-        println(res.company("Strumenta").get("city"))
         assertEquals("Torino", res.company("Strumenta").city.name)
         assertEquals("Piedmont", res.company("Strumenta").region.name)
         assertEquals("Italy", res.company("Strumenta").country.name)

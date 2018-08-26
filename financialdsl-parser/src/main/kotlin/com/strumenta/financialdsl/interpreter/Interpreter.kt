@@ -59,6 +59,8 @@ data class CompanyValues(override val ctx : EvaluationContext,
     }
 }
 
+data class TaxPayment(val entity: Entity, val tax: Tax, val amount: Double)
+
 data class EvaluationResult(
         val countries: List<Country>,
         val regions: List<Region>,
@@ -75,6 +77,9 @@ data class EvaluationResult(
     fun city(name: String) = cities.find { it.name == name } ?: throw IllegalArgumentException("No city named $name found")
     fun person(name: String) = persons.find { it.name == name}!!
     fun company(name: String) = companies.find { it.name == name}!!
+    fun tax(entityName: String, taxName: String): TaxPayment {
+        TODO()
+    }
 }
 
 class LazyEntityFieldValue(val entityName: String, val fieldName: String, val ctx: EvaluationContext) : Value {

@@ -78,7 +78,8 @@ tax IRPEF on person {
 											      [to 55K] -> 2.75%,
 											      [to 75K] -> 3.32%,
 											      [above]  -> 3.33%
-}"""
+}
+"""
 
     val parsingResult = Parser().parse(code)
     if (!parsingResult.correct) {
