@@ -70,19 +70,6 @@ data class EvaluationResult(
     fun city(name: String) = cities.find { it.name == name } ?: throw IllegalArgumentException("No city named $name found")
 }
 
-//class LazyGranularity(val lambda: () -> Granularity) : Granularity {
-//
-//    private var calculated : Granularity? = null
-//
-//    override val value: Int
-//        get() {
-//            if (calculated == null) {
-//                calculated = lambda.invoke()
-//            }
-//            return calculated!!.value
-//        }
-//}
-
 class LazyEntityFieldValue(val entityName: String, val fieldName: String, val ctx: EvaluationContext) : Value {
 
     private var calculatedValue : Value? = null
@@ -209,51 +196,9 @@ fun sumValues(elements: List<Value>) : Value {
         elements.size == 1 -> elements[0]
         else -> sumValues(elements[0], sumValues(elements.drop(1)))
     }
-
-//                    val fieldType = contributions.commonSupertypeOfValues()
-//                    when (fieldType) {
-//                        is PeriodicType -> {
-
-//                            if (fieldType.baseType is IntType) {
-//                                var result = 0L
-//                                contributions.forEach {
-//                                    val v = it.unlazy()
-//                                    if (v is PeriodicValue) {
-//                                        if (v.periodicity != fieldType.periodicity) {
-//                                            TODO()
-//                                        }
-//                                        if (v.value is IntValue) {
-//                                            result += v.value.value
-//                                        } else {
-//                                            TODO()
-//                                        }
-//                                    } else if (v is TimeValue) {
-//                                        TODO(v.toString()+ " "+ v.type)
-//                                    } else {
-//                                        TODO("Not periodic value but $it")
-//                                    }
-//                                }
-//                                return PeriodicValue(IntValue(result), fieldType.periodicity)
-//                            } else {
-//                                TODO()
-//                            }
-//                        }
-//                        else -> TODO(fieldType.toString())
-  //  }
-//}
 }
 
 class EvaluationContext(val file: FinancialDSLFile, val parameters: Map<Pair<String, String>, Value>) {
-//    private val entityRefs = HashMap<String, EntityValues>()
-//    init {
-//        file.companies.forEach { entityRefs[it.name] = it.evaluateCompany(this) }
-//        file.persons.forEach { entityRefs[it.name] = it.evaluatePerson(this) }
-//    }
-//
-//    fun entityRef(name: String) = entityRefs[name] ?: throw IllegalArgumentException("No entity named $name found")
-//    fun parameterValue(entityName: String, fieldName: String): Value {
-//        return parameters[Pair(entityName, fieldName)]!!
-//    }
 
     fun entityValues(name: String, period: PeriodValue): EntityValues {
         return file.entities.find { it.name == name }?.evaluate(this, period) ?: throw IllegalArgumentException("Unknown entity $name")

@@ -90,41 +90,11 @@ private fun EntityField.evaluateAsSum(entityName: String, ctx: EvaluationContext
                 }
                 else -> TODO(c.javaClass.canonicalName)
             }
-//            field.contribution!!.target
-//            when (field.contribution!!.target) {
-//                is ReferenceExpr -> {
-//                    if (entity.name == entityName && (field.contribution.target as ReferenceExpr).name.name == fieldName) {
-//                        contributions.add(ctx.entityRef(entity.name).get(field.name))
-//                    }
-//                }
-//                is FieldAccessExpr -> {
-//                    val fieldAccessExpr = field.contribution.target as FieldAccessExpr
-//                    if (fieldAccessExpr.scope is ReferenceExpr) {
-//                        if (fieldAccessExpr.scope.name.name == entityName && fieldAccessExpr.fieldName == fieldName) {
-//                            contributions.add(ctx.entityRef(entity.name).get(field.name))
-//                        }
-//                        if (fieldAccessExpr.scope.name.name == "owners" && fieldAccessExpr.fieldName == fieldName && field.contribution.byShare) {
-//                            val percentageValue = ctx.entityRef(entityName).share(entityName)
-//                            contributions.add(multiplyValues(percentageValue, ctx.entityRef(entity.name).get(field.name)))
-//                        }
-//                    } else {
-//                        TODO()
-//                    }
-//                }
-//                else -> TODO(field.contribution.toString())
-            //}
-
         }
     }
 
     return sumValues(contributions)
 }
-
-//private fun Contribution.percentageContributionTo(entityName: String): PercentageValue {
-//    when (this) {
-//        else -> TODO(this.javaClass.canonicalName)
-//    }
-//}
 
 ///
 /// Expression level
