@@ -43,6 +43,7 @@ Gabriele is person {
 }
 
 Strumenta is SRL {
+    city = Torino
     owners = [Federico at 66%, Gabriele at 34%]
     gross_profit is amount <- parameter
     personnel_costs is amount <- sum

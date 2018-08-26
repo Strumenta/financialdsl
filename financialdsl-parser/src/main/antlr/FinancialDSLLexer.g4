@@ -40,6 +40,7 @@ BRACKETS           : 'brackets' ;
 ABOVE              : 'above' ;
 BY                 : 'by' ;
 OWNERS             : 'owners' ;
+CITY               : 'city' ;
 
 // Identifiers
 ID                 : [A-Za-z][A-Za-z0-9_]* ;

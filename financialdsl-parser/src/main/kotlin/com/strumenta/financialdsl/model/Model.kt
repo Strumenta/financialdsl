@@ -28,6 +28,24 @@ data class FinancialDSLFile(val declarations : List<TopLevelDeclaration>,
     @Derived val companyTypes : List<CompanyType>
         get() = declarations.filterIsInstance(CompanyType::class.java)
 
+    @Derived val countriesLists : List<CountriesList>
+        get() = declarations.filterIsInstance(CountriesList::class.java)
+
+    @Derived val regionsLists : List<RegionsList>
+        get() = declarations.filterIsInstance(RegionsList::class.java)
+
+    @Derived val citiesLists : List<CitiesList>
+        get() = declarations.filterIsInstance(CitiesList::class.java)
+
+    @Derived val countries : List<Country>
+        get() = countriesLists.foldRight(emptyList()) { el, acc -> el.countries + acc }
+
+    @Derived val regions : List<Region>
+        get() = regionsLists.foldRight(emptyList()) { el, acc -> el.regions + acc }
+
+    @Derived val cities : List<City>
+        get() = citiesLists.foldRight(emptyList()) { el, acc -> el.cities + acc }
+
     override fun candidatesForValues(): List<Named> {
         return entities
     }
@@ -40,14 +58,27 @@ data class FinancialDSLFile(val declarations : List<TopLevelDeclaration>,
 data class CountriesList(val countries: List<Country>,
                          override val position: Position? = null)
     : TopLevelDeclaration(position)
-data class Country(override val name : String, val eu: Boolean, override val position: Position? = null) : Node(position), Named
+data class Country(override val name : String, val eu: Boolean, override val position: Position? = null) : Node(position), Named {
+    @Derived
+    val regions: List<Region>
+        get() = ancestor(FinancialDSLFile::class.java)!!.regions.filter { it.country == this }
+    @Derived
+    val cities
+        get() = ancestor(FinancialDSLFile::class.java)!!.cities.filter { it.country == this }
+}
 
 data class RegionsList(val regions: List<Region>,
                        val country: ReferenceByName<Country>,
                        override val position: Position? = null)
     : TopLevelDeclaration(position)
+
 data class Region(override val name : String, override val position: Position? = null) : Node(position), Named {
-    fun country() = (this.parent as RegionsList).country.referred!!
+    @Derived
+    val country
+        get() = (this.parent as RegionsList).country.referred!!
+    @Derived
+    val cities
+        get() = this.ancestor(FinancialDSLFile::class.java)!!.cities.filter { it.region == this }
 }
 
 data class CitiesList(val cities: List<City>,
@@ -55,8 +86,12 @@ data class CitiesList(val cities: List<City>,
                       override val position: Position? = null)
     : TopLevelDeclaration(position)
 data class City(val name : String, override val position: Position? = null) : Node(position) {
-    fun country() = region().country()
-    fun region() = (this.parent as CitiesList).region.referred!!
+    @Derived
+    val country
+            get() = region.country
+    @Derived
+    val region
+            get() = (this.parent as CitiesList).region.referred!!
 }
 
 abstract class EntityTypeRef(override val position: Position? = null) : Node(position) {

@@ -54,10 +54,20 @@ data class CompanyValues(override val ctx : EvaluationContext,
     }
 }
 
-data class EvaluationResult(val companies: List<CompanyValues>, val persons: List<PersonValues>) {
+data class EvaluationResult(
+        val countries: List<Country>,
+        val regions: List<Region>,
+        val cities: List<City>,
+        val companies: List<CompanyValues>, val persons: List<PersonValues>) {
+
     fun entity(name: String): EntityValues {
         return (companies + persons).find { it.name == name }!!
     }
+
+    fun country(name: String) = countries.find { it.name == name } ?: throw IllegalArgumentException("No country named $name found")
+    fun regionsOf(countryName: String) = regions.filter { it.country.name == countryName }
+    fun region(name: String) : Region = regions.find { it.name == name } ?: throw IllegalArgumentException("No region named $name found")
+    fun city(name: String) = cities.find { it.name == name } ?: throw IllegalArgumentException("No city named $name found")
 }
 
 //class LazyGranularity(val lambda: () -> Granularity) : Granularity {

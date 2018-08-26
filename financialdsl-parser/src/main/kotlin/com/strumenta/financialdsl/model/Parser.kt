@@ -90,4 +90,10 @@ private fun FinancialDSLFile.validate(errors: LinkedList<Error>) {
     this.specificProcess(CompanyTypeRef::class.java) { companyTypeRef ->
         companyTypeRef.ref.tryToResolve(this.companyTypes)
     }
+    this.specificProcess(RegionsList::class.java) { regionsList ->
+        regionsList.country.tryToResolve(this.countries)
+    }
+    this.specificProcess(CitiesList::class.java) { citiesList ->
+        citiesList.region.tryToResolve(this.regions)
+    }
 }

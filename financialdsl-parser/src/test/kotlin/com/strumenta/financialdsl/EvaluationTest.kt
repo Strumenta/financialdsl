@@ -8,6 +8,7 @@ import kotlin.test.assertEquals
 import com.strumenta.financialdsl.model.Parser
 
 class EvaluationTest : AbstractTest(){
+
     @Test
     fun evaluateMonthlyValueInYear() {
         val model = Parser().parse("""

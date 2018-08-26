@@ -13,6 +13,9 @@ import java.util.*
 fun FinancialDSLFile.evaluate(period: PeriodValue, parameters: Map<Pair<String, String>, Value>) : EvaluationResult {
     val ctx = EvaluationContext(this, parameters)
     return EvaluationResult(
+            this.countriesLists.map { it.countries }.flatten(),
+            this.regionsLists.map { it.regions }.flatten(),
+            this.citiesLists.map { it.cities }.flatten(),
             this.companies.map { ctx.entityValues(it.name, period) as CompanyValues },
             this.persons.map { ctx.entityValues(it.name, period) as PersonValues }
     )
