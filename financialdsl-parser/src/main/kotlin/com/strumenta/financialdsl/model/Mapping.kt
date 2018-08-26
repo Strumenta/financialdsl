@@ -27,14 +27,14 @@ fun TopLevelDeclarationContext.toAst(): TopLevelDeclaration {
         is EntityDeclContext -> this.findEntityDeclaration()!!.let {
             Entity(
                     it.name?.text ?: throw IllegalStateException("No name found"),
-                    it.findEntityType()?.toAst() ?: throw IllegalStateException("No entity type found for ${it.name?.text!!}"),
+                    it.target?.toAst() ?: throw IllegalStateException("No entity type found for ${it.name?.text!!}"),
                     it.stmts.map { it.toAst() },
                     toPosition())
         }
         is TaxDeclContext -> this.findTaxDeclaration()!!.let {
             Tax(
                     it.name!!.text!!,
-                    it.findEntityType()!!.toAst(),
+                    it.target!!.toAst(),
                     it.stmts.map { it.toAst() },
                     toPosition())
         }
@@ -43,7 +43,11 @@ fun TopLevelDeclarationContext.toAst(): TopLevelDeclaration {
 }
 
 private fun TaxDeclarationStmtContext.toAst(): EntityField {
-    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    return EntityField(this.name!!.text!!, this.value?.toAst(),
+            false,
+            false,
+            null,
+            toPosition())
 }
 
 private fun EntityDeclarationStmtContext.toAst(): EntityField {

@@ -34,7 +34,7 @@ cityDeclaration : name=ID
 entityDeclaration : name=ID IS target=entityType LBRACE (stmts+=entityDeclarationStmt)* RBRACE
                   ;
 
-entityDeclarationStmt : (name=ID|name=OWNERS) (IS type)?
+entityDeclarationStmt : (name=ID|name=OWNERS|name=CITY) (IS type)?
                         ((EQUAL value=expression)|(IN_ARROW PARAMETER)|(IN_ARROW SUM))?
                         (OUT_ARROW CONTRIBUTES TO contributed=contributionTarget)?
                       ;
@@ -56,7 +56,7 @@ type : AMOUNT
 taxDeclaration : TAX name=ID ON target=entityType LBRACE (stmts+=taxDeclarationStmt)* RBRACE
                ;
 
-taxDeclarationStmt : field=ID EQUAL value=expression
+taxDeclarationStmt : name=ID EQUAL value=expression
                    ;
 
 date : MONTH year=INTLIT #monthDate
