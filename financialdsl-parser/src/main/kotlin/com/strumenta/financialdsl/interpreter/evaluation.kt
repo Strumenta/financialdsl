@@ -19,7 +19,7 @@ fun FinancialDSLFile.evaluate(period: PeriodValue, parameters: Map<Pair<String, 
             this.companies.map { ctx.entityValues(it.name, period) as CompanyValues },
             this.persons.map { ctx.entityValues(it.name, period) as PersonValues },
             this.taxes,
-            this.taxes.map { ctx.taxPayments(it) }.flatten()
+            this.taxes.map { ctx.taxPayments(it, period) }.flatten()
     )
 }
 

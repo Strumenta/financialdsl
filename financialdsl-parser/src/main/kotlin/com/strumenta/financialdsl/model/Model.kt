@@ -1,5 +1,7 @@
 package com.strumenta.financialdsl.model
 
+import com.strumenta.financialdsl.interpreter.EvaluationContext
+import com.strumenta.financialdsl.interpreter.PeriodValue
 import me.tomassetti.kolasu.model.*
 import me.tomassetti.kolasu.model.Position
 import java.time.Month
@@ -120,8 +122,15 @@ data class Entity(override val name: String,
                   val type: EntityTypeRef,
                   val fields: List<EntityField>,
                   override val position: Position? = null) : TopLevelDeclaration(position), Named, Scope {
+    @Derived
     val fieldNames: List<String>
         get() = fields.map { it.name }
+    @Derived
+    val isPerson: Boolean
+        get() = type.isPerson()
+    @Derived
+    val isCompany: Boolean
+        get() = type.isCompany()
 
     fun field(name: String) : EntityField = fields.firstOrNull { it.name == name } ?: throw IllegalArgumentException("Cannot find field $name in entity ${this.name}")
 
@@ -148,9 +157,19 @@ data class OwnersContribution(val fieldName: String, override val position: Posi
 data class Tax(override val name: String,
                val target: EntityTypeRef,
                override val position: Position? = null) : TopLevelDeclaration(position), Named {
+
     fun isApplicableTo(entity: Entity): Boolean {
+        return when {
+            this.target.isPerson() -> entity.isPerson
+            this.target.isCompany() -> entity.isCompany && entity.name == (this.target as CompanyTypeRef).ref.name
+            else -> TODO()
+        }
+    }
+
+    fun amountToPay(entity: Entity, evaluationContext: EvaluationContext, period: PeriodValue): Double {
         TODO()
     }
+
 }
 
 abstract class Period(override val position: Position? = null) : Node(position)

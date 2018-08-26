@@ -223,9 +223,10 @@ class EvaluationContext(val file: FinancialDSLFile, val parameters: Map<Pair<Str
         return parameters[Pair(entityName, fieldName)]!!
     }
 
-    fun taxPayments(tax: Tax): List<TaxPayment> {
-        return file.entities.filter { tax.isApplicableTo(it) }.map { TODO() } //TaxPayment }
-        //TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    fun taxPayments(tax: Tax, period: PeriodValue): List<TaxPayment> {
+        return file.entities.filter { tax.isApplicableTo(it) }.map { entity ->
+            TaxPayment(entity, tax, tax.amountToPay(entity, this, period))
+        }
     }
 }
 
