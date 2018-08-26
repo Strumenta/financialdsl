@@ -100,6 +100,12 @@ private fun EntityField.evaluateAsSum(entityName: String, ctx: EvaluationContext
 /// Expression level
 ///
 
+object GeoType : Type
+
+data class CountryValue(val country: Country) : ConstantValue(GeoType)
+data class RegionValue(val region: Region) : ConstantValue(GeoType)
+data class CityValue(val city: City) : ConstantValue(GeoType)
+
 fun Expression.evaluate(ctx: EvaluationContext, period: PeriodValue): Value {
     return when (this) {
         is SharesMapExpr -> SharesMap(this.shares.map {
@@ -110,6 +116,9 @@ fun Expression.evaluate(ctx: EvaluationContext, period: PeriodValue): Value {
             when (target) {
                 is Entity -> ctx.entityValues(target.name, period)
                 is EntityFieldRef -> ctx.entityValues(target.entityName, period).get(target.name)
+                is City -> CityValue(ctx.file.cities.find { it.name == this.name.name }!!)
+                is Region -> RegionValue(ctx.file.regions.find { it.name == this.name.name }!!)
+                is Country -> CountryValue(ctx.file.countries.find { it.name == this.name.name }!!)
                 else -> TODO("ReferenceExpr to ${target.javaClass.canonicalName}")
             }
         }

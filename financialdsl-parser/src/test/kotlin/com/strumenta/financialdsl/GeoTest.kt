@@ -75,4 +75,35 @@ class GeoTest : AbstractTest(){
         assertEquals(1, res.country("Italy").cities.size)
         assertEquals(0, res.country("France").cities.size)
     }
+
+    @Test
+    fun geoDataForPerson() {
+        val model = Parser().parse("""
+            Federico is person {
+                city = Torino
+            }
+
+            countries {
+                Italy EU
+                Germany EU
+                France EU
+                Switzerland
+                Japan
+            }
+
+            regions of Italy {
+                Piedmont
+                Lombardy
+            }
+
+            cities of Piedmont {
+                Torino
+            }
+        """.trimIndent())
+        val res = model.ast!!.evaluate(YearlyPeriodValue(2018), emptyMap())
+        println(res.person("Federico").get("city"))
+        assertEquals("Torino", res.person("Federico").city.name)
+        assertEquals("Piedmont", res.person("Federico").region.name)
+        assertEquals("Italy", res.person("Federico").country.name)
+    }
 }

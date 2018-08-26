@@ -3,6 +3,7 @@ package com.strumenta.financialdsl.model
 import me.tomassetti.kolasu.model.*
 import me.tomassetti.kolasu.model.Position
 import java.time.Month
+import java.util.*
 
 abstract class TopLevelDeclaration(override val position: Position?) : Node(position)
 
@@ -47,7 +48,7 @@ data class FinancialDSLFile(val declarations : List<TopLevelDeclaration>,
         get() = citiesLists.foldRight(emptyList()) { el, acc -> el.cities + acc }
 
     override fun candidatesForValues(): List<Named> {
-        return entities
+        return listOf<List<Named>>(entities, countries, regions, cities).flatten()
     }
 
     fun entity(name: String): Entity {
@@ -58,6 +59,7 @@ data class FinancialDSLFile(val declarations : List<TopLevelDeclaration>,
 data class CountriesList(val countries: List<Country>,
                          override val position: Position? = null)
     : TopLevelDeclaration(position)
+
 data class Country(override val name : String, val eu: Boolean, override val position: Position? = null) : Node(position), Named {
     @Derived
     val regions: List<Region>
@@ -85,7 +87,8 @@ data class CitiesList(val cities: List<City>,
                       val region: ReferenceByName<Region>,
                       override val position: Position? = null)
     : TopLevelDeclaration(position)
-data class City(val name : String, override val position: Position? = null) : Node(position) {
+
+data class City(override val name : String, override val position: Position? = null) : Node(position), Named {
     @Derived
     val country
             get() = region.country

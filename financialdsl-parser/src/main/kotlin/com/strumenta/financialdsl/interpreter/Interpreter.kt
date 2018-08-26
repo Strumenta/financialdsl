@@ -2,7 +2,6 @@ package com.strumenta.financialdsl.interpreter
 
 import com.strumenta.financialdsl.model.*
 import com.strumenta.financialdsl.model.Date
-import java.util.*
 import kotlin.collections.HashMap
 
 abstract class EntityValues(
@@ -17,6 +16,12 @@ abstract class EntityValues(
         get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
     val fieldNames: List<String>
         get() = ctx.file.entity(name).fieldNames
+    val city : City
+        get() = (get("city") as CityValue).city
+    val region : Region
+        get() = city.region
+    val country : Country
+        get() = city.country
 
     fun get(name: String): Value {
         return fieldValues.computeIfAbsent(name, fieldEvaluator)
@@ -68,6 +73,7 @@ data class EvaluationResult(
     fun regionsOf(countryName: String) = regions.filter { it.country.name == countryName }
     fun region(name: String) : Region = regions.find { it.name == name } ?: throw IllegalArgumentException("No region named $name found")
     fun city(name: String) = cities.find { it.name == name } ?: throw IllegalArgumentException("No city named $name found")
+    fun person(name: String) = persons.find { it.name == name}!!
 }
 
 class LazyEntityFieldValue(val entityName: String, val fieldName: String, val ctx: EvaluationContext) : Value {

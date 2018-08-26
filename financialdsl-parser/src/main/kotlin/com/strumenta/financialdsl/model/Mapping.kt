@@ -26,8 +26,8 @@ fun TopLevelDeclarationContext.toAst(): TopLevelDeclaration {
         is CompanyTypeDeclContext -> this.findCompanyTypeDeclaration()!!.let { CompanyType(it.name!!.text!!, toPosition()) }
         is EntityDeclContext -> this.findEntityDeclaration()!!.let {
             Entity(
-                    it.name!!.text!!,
-                    it.findEntityType()!!.toAst(),
+                    it.name?.text ?: throw IllegalStateException("No name found"),
+                    it.findEntityType()?.toAst() ?: throw IllegalStateException("No entity type found for ${it.name?.text!!}"),
                     it.stmts.map { it.toAst() },
                     toPosition())
         }
