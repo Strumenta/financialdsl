@@ -221,3 +221,5 @@ data class SharesMapExpr(val shares: List<Share>, override val position: Positio
 class Share(val owner: String, val shares: Expression, override val position: Position? = null) : Expression(position)
 
 data class FieldAccessExpr(val scope: Expression, val fieldName: String, override val position: Position? = null) : Expression(position)
+
+data class SumExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)

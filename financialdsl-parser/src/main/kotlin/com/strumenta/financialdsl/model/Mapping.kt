@@ -103,7 +103,8 @@ private fun ExpressionContext.toAst(): Expression {
         }
         is ReferenceExprContext -> ReferenceExpr(ReferenceByName(this.name!!.text!!), toPosition())
         is SharesMapExprContext -> SharesMapExpr(this.entries.map { it.toAst() }, toPosition())
-        is FieldAccessExprContext -> FieldAccessExpr(this.findExpression()!!.toAst(), this.fieldName!!.text!!)
+        is FieldAccessExprContext -> FieldAccessExpr(this.findExpression()!!.toAst(), this.fieldName!!.text!!, toPosition())
+        is SumExprContext -> SumExpr(this.left!!.toAst(), this.right!!.toAst(), toPosition())
         else -> TODO(this.javaClass.canonicalName)
     }
 }
