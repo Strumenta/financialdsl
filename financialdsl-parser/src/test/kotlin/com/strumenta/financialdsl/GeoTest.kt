@@ -106,4 +106,38 @@ class GeoTest : AbstractTest(){
         assertEquals("Piedmont", res.person("Federico").region.name)
         assertEquals("Italy", res.person("Federico").country.name)
     }
+
+    @Test
+    fun geoDataForCompany() {
+        val model = Parser().parse("""
+            company type SRL {
+            }
+
+            Strumenta is SRL {
+                city = Torino
+            }
+
+            countries {
+                Italy EU
+                Germany EU
+                France EU
+                Switzerland
+                Japan
+            }
+
+            regions of Italy {
+                Piedmont
+                Lombardy
+            }
+
+            cities of Piedmont {
+                Torino
+            }
+        """.trimIndent())
+        val res = model.ast!!.evaluate(YearlyPeriodValue(2018), emptyMap())
+        println(res.company("Strumenta").get("city"))
+        assertEquals("Torino", res.company("Strumenta").city.name)
+        assertEquals("Piedmont", res.company("Strumenta").region.name)
+        assertEquals("Italy", res.company("Strumenta").country.name)
+    }
 }

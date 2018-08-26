@@ -74,6 +74,7 @@ data class EvaluationResult(
     fun region(name: String) : Region = regions.find { it.name == name } ?: throw IllegalArgumentException("No region named $name found")
     fun city(name: String) = cities.find { it.name == name } ?: throw IllegalArgumentException("No city named $name found")
     fun person(name: String) = persons.find { it.name == name}!!
+    fun company(name: String) = companies.find { it.name == name}!!
 }
 
 class LazyEntityFieldValue(val entityName: String, val fieldName: String, val ctx: EvaluationContext) : Value {
