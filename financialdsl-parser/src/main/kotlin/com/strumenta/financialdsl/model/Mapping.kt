@@ -105,7 +105,24 @@ private fun ExpressionContext.toAst(): Expression {
         is SharesMapExprContext -> SharesMapExpr(this.entries.map { it.toAst() }, toPosition())
         is FieldAccessExprContext -> FieldAccessExpr(this.findExpression()!!.toAst(), this.fieldName!!.text!!, toPosition())
         is SumExprContext -> SumExpr(this.left!!.toAst(), this.right!!.toAst(), toPosition())
+        is BracketsExprContext -> BracketsExpr(this.entries.map { it.toAst() }, toPosition())
+        is WhenExprContext -> WhenExpr(this.clauses.map { it.toAst() }, toPosition())
+        is EqualityContext -> EqualityExpr(this.left!!.toAst(), this.right!!.toAst(), toPosition())
         else -> TODO(this.javaClass.canonicalName)
+    }
+}
+
+private fun WhenClauseContext.toAst() = WhenExprClause(this.condition!!.toAst(), this.value!!.toAst(), toPosition())
+
+private fun BracketEntryContext.toAst(): BracketEntry {
+    return BracketEntry(this.findRange()!!.toAst(), this.value!!.toAst(), toPosition())
+}
+
+private fun RangeContext.toAst(): Range {
+    return when (this) {
+        is ToRangeContext -> ToRange(this.value!!.toAst(), toPosition())
+        is AboveRangeContext -> AboveRange(toPosition())
+        else -> TODO()
     }
 }
 

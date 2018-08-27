@@ -82,8 +82,8 @@ expression : left=expression PLUS right=expression #sumExpr
 bracketEntry : LSQUARE range RSQUARE OUT_ARROW value=expression
              ;
 
-range : TO value=expression
-      | ABOVE
+range : TO value=expression #toRange
+      | ABOVE               #aboveRange
       ;
 
 whenClause : WHEN condition=expression value=expression

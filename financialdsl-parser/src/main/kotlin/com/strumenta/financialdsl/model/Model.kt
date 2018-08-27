@@ -200,6 +200,8 @@ class YearDate(val year: Year, override val position: Position? = null) : Date(p
 
 abstract class Expression(override val position: Position? = null) : Node(position)
 
+abstract class BinaryExpression(open val left: Expression, open val right: Expression, override val position: Position? = null) : Expression(position)
+
 data class TimeExpression(val clauses: List<TimeClause>, override val position: Position? = null) : Expression(position)
 data class TimeClause(val period: Period, val value: Expression, override val position: Position? = null) : Node(position)
 
@@ -222,4 +224,16 @@ class Share(val owner: String, val shares: Expression, override val position: Po
 
 data class FieldAccessExpr(val scope: Expression, val fieldName: String, override val position: Position? = null) : Expression(position)
 
-data class SumExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
+data class SumExpr(override val left: Expression, override val right: Expression, override val position: Position? = null) : BinaryExpression(left, right, position)
+
+data class BracketsExpr(val entries: List<BracketEntry>, override val position: Position? = null) : Expression(position)
+data class BracketEntry(val range: Range, val value: Expression, override val position: Position? = null) : Expression(position)
+
+open class Range(override val position: Position? = null) : Node(position)
+data class ToRange(val upperLimit: Expression, override val position: Position? = null) : Range(position)
+data class AboveRange(override val position: Position? = null) : Range(position)
+
+data class WhenExpr(val clauses: List<WhenExprClause>, override val position: Position? = null) : Expression(position)
+data class WhenExprClause(val condition: Expression, val value: Expression, override val position: Position? = null) : Node(position)
+
+data class EqualityExpr(override val left: Expression, override val right: Expression, override val position: Position? = null) : BinaryExpression(left, right, position)
