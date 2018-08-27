@@ -61,8 +61,14 @@ class TaxesTest : AbstractTest(){
     }
 
     @Test
-    fun irpefWithInFirstBracket() {
+    fun irpefInFirstBracket() {
         assertIrpef("5,000", 1231.0)
+    }
+
+    @Test
+    fun irpefInMultipleBrackets() {
+        // 31870 + 626.64 + 2425.9
+        assertIrpef("90,000", 34922.54)
     }
 
 }
