@@ -51,6 +51,7 @@ class TaxesTest : AbstractTest(){
                                                               [above]  -> 3.33%
             }
         """.trimIndent())
+        assertEquals(true, model.correct, model.errors.toString())
         val res = model.ast!!.evaluate(YearlyPeriodValue(2018), emptyMap())
         val tax = res.tax("Federico", "IRPEF")
         assertEquals(0.0, tax.amount)

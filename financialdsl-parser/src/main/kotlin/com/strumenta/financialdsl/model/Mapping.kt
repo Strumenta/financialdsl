@@ -75,7 +75,7 @@ private fun ExpressionContext.toAst(): Expression {
                 Periodicity.valueOf(this.PERIODICITY()!!.text.toUpperCase()),
                 toPosition())
         is IntLiteralContext -> {
-            val s = this.INTLIT()!!.text
+            val s = this.INTLIT()!!.text.filter { it != ',' }
             val value = if (s.endsWith("K")) {
                 s.removeSuffix("K").toLong() * 1000
             } else {

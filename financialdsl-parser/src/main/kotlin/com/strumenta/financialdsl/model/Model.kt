@@ -172,7 +172,7 @@ data class Tax(override val name: String,
 
     fun amountToPay(entity: Entity, ctx: EvaluationContext, period: PeriodValue): Double {
         val taxValues = ctx.taxValues(name, entity.name, period)
-        val taxable = taxValues.get("taxable") as DecimalValue
+        val taxable = taxValues.get("taxable").toDecimal()
         val rate = taxValues.get("rate") as PercentageValue
         return (multiplyValues(taxable, rate) as DecimalValue).value
     }

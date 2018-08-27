@@ -20,6 +20,10 @@ interface Value {
     fun unlazy(): Value {
         return this
     }
+
+    fun toDecimal(): DecimalValue {
+        TODO()
+    }
 }
 
 abstract class ValueImpl(override val type: Type, override val granularity : Granularity) : Value {
@@ -47,10 +51,12 @@ data class PercentageValue(val value: Double) : ConstantValue(PercentageType) {
     }
 }
 
-data class DecimalValue(val value: Double) : ConstantValue(DecimalType)
+data class DecimalValue(val value: Double) : ConstantValue(DecimalType) {
+    override fun toDecimal() = this
+}
 
 data class IntValue(val value: Long) : ConstantValue(IntType) {
-    fun toDecimal() = DecimalValue(value.toDouble())
+    override fun toDecimal() = DecimalValue(value.toDouble())
 }
 
 data class TimeValue(val alternatives: List<TimeValueEntry>) : ValueImpl(alternatives.map { it.value }.commonSupertypeOfValues(), alternatives

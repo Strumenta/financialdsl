@@ -236,7 +236,7 @@ fun sumValues(elements: List<Value>) : Value {
     }
 }
 
-class EvaluationContext(val file: FinancialDSLFile, val parameters: Map<Pair<String, String>, Value>) {
+data class EvaluationContext(val file: FinancialDSLFile, val parameters: Map<Pair<String, String>, Value>, val currentEntity: Entity? = null) {
 
     fun entityValues(name: String, period: PeriodValue): EntityValues {
         return file.entities.find { it.name == name }?.evaluate(this, period) ?: throw IllegalArgumentException("Unknown entity $name")
@@ -249,12 +249,23 @@ class EvaluationContext(val file: FinancialDSLFile, val parameters: Map<Pair<Str
 
     fun taxPayments(tax: Tax, period: PeriodValue): List<TaxPayment> {
         return file.entities.filter { tax.isApplicableTo(it) }.map { entity ->
-            TaxPayment(entity, tax, tax.amountToPay(entity, this, period))
+            TaxPayment(entity, tax, tax.amountToPay(entity, this.inEntity(entity), period))
         }
     }
 
     fun taxValues(taxName: String, entityName: String, period: PeriodValue): TaxValues {
         return file.taxes.find { it.name == taxName }?.evaluate(entityName, this, period) ?: throw IllegalArgumentException("Unknown tax $taxName")
+    }
+
+    fun valueOfieldInThisContext(fieldName: String, period: PeriodValue): Value? {
+        if (currentEntity == null) {
+            return null
+        }
+        return entityValues(currentEntity!!.name, period).get(fieldName)
+    }
+
+    fun inEntity(entity: Entity) : EvaluationContext {
+        return this.copy(currentEntity = entity)
     }
 }
 

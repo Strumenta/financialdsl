@@ -83,9 +83,9 @@ private fun FinancialDSLFile.validate(errors: LinkedList<Error>) {
             it.name.tryToResolve(scope.candidatesForValues())
             scope = (scope as Node).ancestor(Scope::class.java)
         }
-        if (!it.name.resolved) {
-            errors.add(Error(ErrorType.SEMANTIC, "Unable to resolve reference to ${it.name.name}", it.position!!))
-        }
+        //if (!it.name.resolved) {
+        //    errors.add(Error(ErrorType.SEMANTIC, "Unable to resolve reference to ${it.name.name}", it.position!!))
+        //}
     }
     this.specificProcess(CompanyTypeRef::class.java) { companyTypeRef ->
         companyTypeRef.ref.tryToResolve(this.companyTypes)

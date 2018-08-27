@@ -126,7 +126,16 @@ fun Expression.evaluate(ctx: EvaluationContext, period: PeriodValue): Value {
             it.owner to it.shares.evaluate(ctx, period) as PercentageValue
         }.toMap())
         is ReferenceExpr -> {
-            val target = this.name.referred!!
+            var target = this.name.referred
+            if (target == null) {
+                val value = ctx.valueOfieldInThisContext(this.name.name, period)
+                if (value != null) {
+                    return value
+                }
+            }
+            if (target == null) {
+                throw IllegalStateException("Unresolved reference to ${this.name.name} at ${this.position}")
+            }
             when (target) {
                 is Entity -> ctx.entityValues(target.name, period)
                 is EntityFieldRef -> ctx.entityValues(target.entityName, period).get(target.name)
@@ -157,6 +166,7 @@ fun Expression.evaluate(ctx: EvaluationContext, period: PeriodValue): Value {
             TODO()
         }
         is PeriodicExpression -> PeriodicValue(this.value.evaluate(ctx, period), this.periodicity)
+        is SumExpr -> sumValues(this.left.evaluate(ctx, period), this.right.evaluate(ctx, period))
         else -> TODO(this.javaClass.canonicalName)
     }
 }
