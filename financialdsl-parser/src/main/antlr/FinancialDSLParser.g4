@@ -56,7 +56,7 @@ type : AMOUNT
 taxDeclaration : TAX name=ID ON target=entityType LBRACE (stmts+=taxDeclarationStmt)* RBRACE
                ;
 
-taxDeclarationStmt : name=ID EQUAL value=expression
+taxDeclarationStmt : name=(ID|AMOUNT) EQUAL value=expression
                    ;
 
 date : MONTH year=INTLIT #monthDate
@@ -77,6 +77,8 @@ expression : left=expression PLUS right=expression #sumExpr
            | clauses+=whenClause (COMMA clauses+=whenClause)* #whenExpr
            | left=expression EQUAL right=expression #equality
            | BRACKETS entries+=bracketEntry (COMMA entries+=bracketEntry)* #bracketsExpr
+           | brackets=expression FOR value=expression #bracketsApplicationExpr
+           | LPAREN expression RPAREN #parenExpr
            ;
 
 bracketEntry : LSQUARE range RSQUARE OUT_ARROW value=expression

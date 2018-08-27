@@ -37,8 +37,16 @@ fun Entity.evaluate(ctx: EvaluationContext, period: PeriodValue) : EntityValues 
 
 private fun Entity.evaluatePerson(ctx: EvaluationContext, period: PeriodValue): PersonValues {
     val fieldEvaluator : (String) -> Value = { fieldName ->
-        val field = ctx.file.entity(this.name).field(fieldName)
-        field.evaluate(this.name, ctx, period)
+        if (ctx.file.entity(this.name).hasField(fieldName)) {
+            val field = ctx.file.entity(this.name).field(fieldName)
+            field.evaluate(this.name, ctx, period)
+        } else when (fieldName) {
+            "town" -> CityValue(ctx.entityValues(this.name, period).city)
+            "city" -> CityValue(ctx.entityValues(this.name, period).city)
+            "region" -> RegionValue(ctx.entityValues(this.name, period).region)
+            "country" -> CountryValue(ctx.entityValues(this.name, period).country)
+            else -> throw IllegalArgumentException("Unknown field $fieldName")
+        }
     }
     return PersonValues(ctx, this.name, fieldEvaluator)
 }
@@ -139,6 +147,7 @@ fun Expression.evaluate(ctx: EvaluationContext, period: PeriodValue): Value {
             when (target) {
                 is Entity -> ctx.entityValues(target.name, period)
                 is EntityFieldRef -> ctx.entityValues(target.entityName, period).get(target.name)
+                is TaxFieldRef -> ctx.taxValues(target.taxName, ctx.currentEntity!!.name, period).get(target.name)
                 is City -> CityValue(ctx.file.cities.find { it.name == this.name.name }!!)
                 is Region -> RegionValue(ctx.file.regions.find { it.name == this.name.name }!!)
                 is Country -> CountryValue(ctx.file.countries.find { it.name == this.name.name }!!)
@@ -167,6 +176,35 @@ fun Expression.evaluate(ctx: EvaluationContext, period: PeriodValue): Value {
         }
         is PeriodicExpression -> PeriodicValue(this.value.evaluate(ctx, period), this.periodicity)
         is SumExpr -> sumValues(this.left.evaluate(ctx, period), this.right.evaluate(ctx, period))
+        is BracketsExpr -> BracketsValue(this.entries.map { it.evaluate(ctx, period) })
+        is WhenExpr -> {
+            val clause = this.clauses.find { (it.condition.evaluate(ctx, period) as BooleanValue) == TrueValue } ?: throw RuntimeException("No clause satisfied")
+            clause.value.evaluate(ctx, period)
+        }
+        is EqualityExpr -> {
+            BooleanValue.of(left.evaluate(ctx, period) == right.evaluate(ctx, period))
+        }
+        is BracketsApplicationExpr -> {
+            val bracketValue = this.brackets.evaluate(ctx, period) as BracketsValue
+            val amount = this.value.evaluate(ctx, period).toDecimal()
+            return bracketValue.applyForAmount(amount)
+        }
+        else -> TODO(this.javaClass.canonicalName)
+    }
+}
+
+private fun BracketsValue.applyForAmount(amount: DecimalValue): DecimalValue {
+    return sumValues(this.brackets.map {  multiplyValues(DecimalValue(it.howMuchIsApplicableOf(amount.value)), it.value) }) as DecimalValue
+}
+
+fun BracketEntry.evaluate(ctx: EvaluationContext, period: PeriodValue) : BracketValue {
+    return BracketValue(this.range.evaluate(ctx, period), this.value.evaluate(ctx, period))
+}
+
+private fun Range.evaluate(ctx: EvaluationContext, period: PeriodValue): Limit {
+    return when (this) {
+        is ToRange -> UpToLimit(this.upperLimit.evaluate(ctx, period))
+        is AboveRange -> AboveLimit
         else -> TODO(this.javaClass.canonicalName)
     }
 }

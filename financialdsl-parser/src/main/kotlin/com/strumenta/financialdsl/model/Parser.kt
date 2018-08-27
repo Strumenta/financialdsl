@@ -5,6 +5,7 @@ import com.strumenta.financialdsl.FinancialDSLParser
 import com.strumenta.financialdsl.model.*
 import com.strumenta.kotlinmultiplatform.BitSet
 import me.tomassetti.kolasu.model.*
+import me.tomassetti.kolasu.parsing.toParseTree
 import org.antlr.v4.kotlinruntime.*
 import org.antlr.v4.kotlinruntime.Parser
 import org.antlr.v4.kotlinruntime.atn.ATNConfigSet
@@ -70,9 +71,15 @@ class Parser {
         }
         parser.removeErrorListeners()
         parser.addErrorListener(parserErrorListener)
-        val ast = parser.financialDSLFile().toAst()
-        ast.validate(errors)
-        return ParsingResult(ast, errors)
+        val parseTree = parser.financialDSLFile()
+        return if (errors.isEmpty()) {
+            println(toParseTree(parseTree, FinancialDSLParser.VOCABULARY).multiLineString())
+            val ast = parseTree.toAst()
+            ast.validate(errors)
+            ParsingResult(ast, errors)
+        } else {
+            ParsingResult(null, errors)
+        }
     }
 }
 

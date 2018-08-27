@@ -13,6 +13,7 @@ object NoType : Type
 object EntityType : Type
 object MonthDateType : Type
 object SharesMapType : Type
+object BracketsType : Type
 
 data class PeriodicType(val baseType: Type, val periodicity: Periodicity) : Type
 

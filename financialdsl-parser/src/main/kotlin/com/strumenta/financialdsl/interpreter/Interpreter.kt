@@ -209,6 +209,14 @@ fun sumValues(valueA: Value, valueB: Value) : Value {
         valueA is DecimalValue && valueB is DecimalValue -> {
             return DecimalValue(valueA.value + valueB.value)
         }
+        valueA is BracketsValue && valueB is BracketsValue -> {
+            if (valueA.brackets.map { it.limit }  == valueB.brackets.map { it.limit }) {
+                //return BracketsValue(BracketsExpr(valueA.expr.entries.mapIndexed { index, entryA -> BracketEntry(entryA.range, SumExpr(entryA.value, valueB.expr.entries[index].value)) }))
+                TODO()
+            } else {
+                TODO("Brackets A: ${valueA.brackets.map { it.limit }} Brackets B: ${valueB.brackets.map { it.limit }}")
+            }
+        }
         else -> TODO("Sum ${valueA.type} and ${valueB.type} ${valueA.javaClass} ${valueB.javaClass}")
     }
 }
@@ -223,6 +231,9 @@ fun multiplyValues(valueA: Value, valueB: Value) : Value {
         }
         valueA is LazyEntityFieldValue || valueB is LazyEntityFieldValue -> {
             multiplyValues(valueA.unlazy(), valueB.unlazy())
+        }
+        valueA is DecimalValue && valueB is PercentageValue -> {
+            DecimalValue(valueA.value * valueB.value.div(100.0))
         }
         else -> TODO("Multiply ${valueA.type} and ${valueB.type} ${valueA.javaClass} ${valueB.javaClass}")
     }

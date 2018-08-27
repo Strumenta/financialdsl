@@ -1,6 +1,5 @@
 package com.strumenta.financialdsl
 
-import com.strumenta.financialdsl.interpreter.DecimalValue
 import com.strumenta.financialdsl.interpreter.YearlyPeriodValue
 import com.strumenta.financialdsl.interpreter.evaluate
 import com.strumenta.financialdsl.model.Parser
@@ -9,12 +8,11 @@ import kotlin.test.assertEquals
 
 class TaxesTest : AbstractTest(){
 
-    @Test
-    fun irpefWithZeroIncome() {
+    fun assertIrpef(income: String, expectedValue: Double) {
         val model = Parser().parse("""
             Federico is person {
                 city = Torino
-                income = 0
+                income = $income
             }
 
             countries {
@@ -35,8 +33,8 @@ class TaxesTest : AbstractTest(){
             }
 
             tax IRPEF on person {
+                amount = (national_rate for taxable) + (regional_rate for taxable) + (town_rate for taxable)
                 taxable = income
-                rate = national_rate + regional_rate + town_rate
                 national_rate = brackets [to 15K] -> 23%,
                                          [to 28K] -> 27%,
                                          [to 55K] -> 38%,
@@ -54,7 +52,17 @@ class TaxesTest : AbstractTest(){
         assertEquals(true, model.correct, model.errors.toString())
         val res = model.ast!!.evaluate(YearlyPeriodValue(2018), emptyMap())
         val tax = res.tax("Federico", "IRPEF")
-        assertEquals(0.0, tax.amount)
+        assertEquals(expectedValue, tax.amount)
+    }
+
+    @Test
+    fun irpefWithZeroIncome() {
+        assertIrpef("0", 0.0)
+    }
+
+    @Test
+    fun irpefWithInFirstBracket() {
+        assertIrpef("5,000", 1231.0)
     }
 
 }

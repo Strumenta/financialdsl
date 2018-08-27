@@ -1,5 +1,6 @@
 package com.strumenta.financialdsl.interpreter
 
+import com.strumenta.financialdsl.model.BracketsExpr
 import com.strumenta.financialdsl.model.Periodicity
 import java.time.LocalDate
 import java.time.Month
@@ -114,3 +115,73 @@ data class MonthDateValue(override val month: Month, override val year: Int) : D
 data class PeriodicValue(val value: Value, val periodicity: Periodicity) : ConstantValue(PeriodicType(value.type, periodicity))
 
 data class SharesMap(val shares: Map<String, PercentageValue>) : ConstantValue(SharesMapType)
+
+interface Limit
+object AboveLimit : Limit
+data class UpToLimit(val value: Value) : Limit
+
+data class BracketValue(val limit: Limit, val value: Value) : Value {
+    var parent : BracketsValue? = null
+    override val type: Type
+        get() = BracketsType
+    override val granularity : Granularity
+        get() = TODO()
+    override fun forPeriod(period: PeriodValue) : Value {
+        TODO()
+    }
+
+    fun howMuchIsApplicableOf(amount: Double): Double {
+        if (amount < lowLimit()) {
+            return 0.0
+        }
+        return kotlin.math.min(amount, highLimit() ?: Double.MAX_VALUE) - lowLimit()
+    }
+
+    fun lowLimit() : Double {
+        val index = parent!!.brackets.indexOf(this)
+        return if (index == 0) {
+            0.0
+        } else {
+            parent!!.brackets[index - 1].highLimit()!!
+        }
+    }
+
+    fun highLimit() : Double? {
+        return when (limit) {
+            is AboveLimit -> null
+            is UpToLimit -> limit.value.toDecimal().value
+            else -> TODO()
+        }
+    }
+}
+
+data class BracketsValue(val brackets: List<BracketValue>) : Value {
+    init {
+        brackets.forEach { it.parent = this }
+    }
+    override val type: Type
+        get() = BracketsType
+    override val granularity : Granularity
+        get() = TODO()
+    override fun forPeriod(period: PeriodValue) : Value {
+        TODO()
+    }
+}
+
+abstract class BooleanValue(val value: Boolean) : Value {
+    override val type: Type
+        get() = TODO()
+    override val granularity : Granularity
+        get() = TODO()
+    override fun forPeriod(period: PeriodValue) : Value {
+        TODO()
+    }
+
+    companion object {
+        fun of(value: Boolean) = if (value) TrueValue else FalseValue
+    }
+
+}
+
+object TrueValue : BooleanValue(true)
+object FalseValue : BooleanValue(false)

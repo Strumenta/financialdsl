@@ -27,7 +27,7 @@ fun TopLevelDeclarationContext.toAst(): TopLevelDeclaration {
         is EntityDeclContext -> this.findEntityDeclaration()!!.let {
             Entity(
                     it.name?.text ?: throw IllegalStateException("No name found"),
-                    it.target?.toAst() ?: throw IllegalStateException("No entity type found for ${it.name?.text!!}"),
+                    it.target?.toAst() ?: throw IllegalStateException("No entity type found for ${it.name?.text!!} at ${it.position}"),
                     it.stmts.map { it.toAst() },
                     toPosition())
         }
@@ -108,6 +108,8 @@ private fun ExpressionContext.toAst(): Expression {
         is BracketsExprContext -> BracketsExpr(this.entries.map { it.toAst() }, toPosition())
         is WhenExprContext -> WhenExpr(this.clauses.map { it.toAst() }, toPosition())
         is EqualityContext -> EqualityExpr(this.left!!.toAst(), this.right!!.toAst(), toPosition())
+        is BracketsApplicationExprContext -> BracketsApplicationExpr(this.brackets!!.toAst(), this.value!!.toAst(), toPosition())
+        is ParenExprContext -> this.findExpression()!!.toAst()
         else -> TODO(this.javaClass.canonicalName)
     }
 }

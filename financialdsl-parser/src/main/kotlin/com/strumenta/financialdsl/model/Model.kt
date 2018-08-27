@@ -10,6 +10,7 @@ abstract class TopLevelDeclaration(override val position: Position?) : Node(posi
 
 data class EntityRef(override val name: String) : Named
 data class EntityFieldRef(val entityName: String, override val name: String) : Named
+data class TaxFieldRef(val taxName: String, override val name: String) : Named
 
 interface Scope {
     fun candidatesForValues() : List<Named>
@@ -135,6 +136,7 @@ data class Entity(override val name: String,
     val isCompany: Boolean
         get() = type.isCompany()
 
+    fun hasField(name: String) : Boolean = fields.firstOrNull { it.name == name } != null
     fun field(name: String) : EntityField = fields.firstOrNull { it.name == name } ?: throw IllegalArgumentException("Cannot find field $name in entity ${this.name}")
 
     override fun candidatesForValues(): List<Named> {
@@ -172,15 +174,19 @@ data class Tax(override val name: String,
 
     fun amountToPay(entity: Entity, ctx: EvaluationContext, period: PeriodValue): Double {
         val taxValues = ctx.taxValues(name, entity.name, period)
+        if (hasField("amount")) {
+            return (taxValues.get("amount") as DecimalValue).value
+        }
         val taxable = taxValues.get("taxable").toDecimal()
         val rate = taxValues.get("rate") as PercentageValue
         return (multiplyValues(taxable, rate) as DecimalValue).value
     }
 
+    fun hasField(name: String) : Boolean = fields.firstOrNull { it.name == name } != null
     fun field(name: String) : EntityField = fields.firstOrNull { it.name == name } ?: throw IllegalArgumentException("Cannot find field $name in entity ${this.name}")
 
     override fun candidatesForValues(): List<Named> {
-        return fields.map { EntityFieldRef(name, it.name) }
+        return fields.map { TaxFieldRef(name, it.name) }
     }
 }
 
@@ -229,11 +235,19 @@ data class SumExpr(override val left: Expression, override val right: Expression
 data class BracketsExpr(val entries: List<BracketEntry>, override val position: Position? = null) : Expression(position)
 data class BracketEntry(val range: Range, val value: Expression, override val position: Position? = null) : Expression(position)
 
-open class Range(override val position: Position? = null) : Node(position)
-data class ToRange(val upperLimit: Expression, override val position: Position? = null) : Range(position)
-data class AboveRange(override val position: Position? = null) : Range(position)
+abstract class Range(override val position: Position? = null) : Node(position) {
+    abstract fun withoutPosition() : Range
+}
+data class ToRange(val upperLimit: Expression, override val position: Position? = null) : Range(position) {
+    override fun withoutPosition() = ToRange(upperLimit)
+}
+data class AboveRange(override val position: Position? = null) : Range(position) {
+    override fun withoutPosition() = AboveRange()
+}
 
 data class WhenExpr(val clauses: List<WhenExprClause>, override val position: Position? = null) : Expression(position)
 data class WhenExprClause(val condition: Expression, val value: Expression, override val position: Position? = null) : Node(position)
 
 data class EqualityExpr(override val left: Expression, override val right: Expression, override val position: Position? = null) : BinaryExpression(left, right, position)
+
+data class BracketsApplicationExpr(val brackets: Expression, val value: Expression, override val position: Position? = null) : Expression(position)
