@@ -83,7 +83,12 @@ data class CompanyValues(override val ctx : EvaluationContext,
     }
 }
 
-data class TaxPayment(val entity: Entity, val tax: Tax, val amount: Double)
+data class TaxPayment(val entity: Entity, val tax: Tax, val amount: Double, val taxValues: TaxValues) {
+
+    fun get(name: String): Value {
+        return taxValues.get(name)
+    }
+}
 
 data class EvaluationResult(
         val countries: List<Country>,
@@ -105,7 +110,7 @@ data class EvaluationResult(
     fun person(name: String) = persons.find { it.name == name}!!
     fun company(name: String) = companies.find { it.name == name}!!
     fun tax(name: String) = taxes.find { it.name == name}!!
-    fun tax(entityName: String, taxName: String) = taxPayments.find { it.tax.name == taxName && it.entity.name == entityName }!!
+    fun tax(entityName: String, taxName: String) = taxPayments.find { it.tax.name == taxName && it.entity.name == entityName } ?: throw IllegalArgumentException("Cannot find tax $taxName for $entityName")
 }
 
 class LazyEntityFieldValue(val entityName: String, val fieldName: String, val ctx: EvaluationContext) : Value {
@@ -235,6 +240,12 @@ fun multiplyValues(valueA: Value, valueB: Value) : Value {
         valueA is DecimalValue && valueB is PercentageValue -> {
             DecimalValue(valueA.value * valueB.value.div(100.0))
         }
+        valueA is DecimalValue && valueB is IntValue -> {
+            multiplyValues(valueA.toDecimal(), valueA.toDecimal())
+        }
+        valueA is DecimalValue && valueB is DecimalValue -> {
+            DecimalValue(valueA.value * valueB.value)
+        }
         else -> TODO("Multiply ${valueA.type} and ${valueB.type} ${valueA.javaClass} ${valueB.javaClass}")
     }
 }
@@ -260,7 +271,7 @@ data class EvaluationContext(val file: FinancialDSLFile, val parameters: Map<Pai
 
     fun taxPayments(tax: Tax, period: PeriodValue): List<TaxPayment> {
         return file.entities.filter { tax.isApplicableTo(it) }.map { entity ->
-            TaxPayment(entity, tax, tax.amountToPay(entity, this.inEntity(entity), period))
+            TaxPayment(entity, tax, tax.amountToPay(entity, this.inEntity(entity), period), taxValues(tax.name, entity.name, period))
         }
     }
 
@@ -296,6 +307,7 @@ fun Period.evaluate(ctx: EvaluationContext, period: PeriodValue): PeriodValue {
 private fun Date.evaluate(ctx: EvaluationContext): Value {
     return when (this) {
         is MonthDate -> MonthDateValue(this.month, this.year.value)
+        is YearDate -> YearDateValue(this.year.value)
         else -> TODO(this.javaClass.canonicalName)
     }
 }

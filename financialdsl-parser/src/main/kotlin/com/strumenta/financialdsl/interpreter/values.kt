@@ -111,6 +111,10 @@ data class MonthDateValue(override val month: Month, override val year: Int) : D
     override val firstDay: LocalDate
         get() = LocalDate.of(year, month, 1)
 }
+data class YearDateValue(override val year: Int) : DateValue(MonthDateType) {
+    override val firstDay: LocalDate
+        get() = LocalDate.of(year, Month.JANUARY, 1)
+}
 
 data class PeriodicValue(val value: Value, val periodicity: Periodicity) : ConstantValue(PeriodicType(value.type, periodicity))
 

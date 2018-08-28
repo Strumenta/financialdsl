@@ -93,12 +93,7 @@ private fun ExpressionContext.toAst(): Expression {
             DecimalLiteral(value, toPosition())
         }
         is PercentageLiteralContext -> {
-            val s = this.PERCLIT()!!.text.removeSuffix("%")
-            val value = if (s.endsWith("K")) {
-                s.removeSuffix("K").toDouble() * 1000
-            } else {
-                s.toDouble()
-            }
+            val value = percentageLiteralValue(this.PERCLIT()!!.text)
             PercentageLiteral(value, toPosition())
         }
         is ReferenceExprContext -> ReferenceExpr(ReferenceByName(this.name!!.text!!), toPosition())
@@ -110,7 +105,17 @@ private fun ExpressionContext.toAst(): Expression {
         is EqualityContext -> EqualityExpr(this.left!!.toAst(), this.right!!.toAst(), toPosition())
         is BracketsApplicationExprContext -> BracketsApplicationExpr(this.brackets!!.toAst(), this.value!!.toAst(), toPosition())
         is ParenExprContext -> this.findExpression()!!.toAst()
+        is PercentageExprContext -> PercentageOfExpr(percentageLiteralValue(this.percentage!!.text!!), this.baseValue!!.toAst(), toPosition())
         else -> TODO(this.javaClass.canonicalName)
+    }
+}
+
+fun percentageLiteralValue(literal: String) : Double {
+    val s = literal.removeSuffix("%")
+    return if (s.endsWith("K")) {
+        s.removeSuffix("K").toDouble() * 1000
+    } else {
+        s.toDouble()
     }
 }
 
@@ -144,6 +149,7 @@ private fun TimeClauseContext.toAst(): Period {
 private fun DateContext.toAst(): Date {
     return when (this) {
         is MonthDateContext -> MonthDate(Month.valueOf(this.MONTH()!!.text.toUpperCase()), Year(this.year!!.text!!.toInt(), toPosition()))
+        is YearDateContext -> YearDate(Year(this.year!!.text!!.toInt(), toPosition()))
         else -> TODO(this.javaClass.canonicalName)
     }
 }

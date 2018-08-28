@@ -109,6 +109,7 @@ data class City(override val name : String, override val position: Position? = n
 abstract class EntityTypeRef(override val position: Position? = null) : Node(position) {
     abstract fun isCompany(): Boolean
     fun isPerson() = !isCompany()
+    open fun companyType() : CompanyType = throw UnsupportedOperationException()
 }
 
 class PersonTypeRef(override val position: Position? = null) : EntityTypeRef(position) {
@@ -117,6 +118,7 @@ class PersonTypeRef(override val position: Position? = null) : EntityTypeRef(pos
 
 data class CompanyTypeRef(val ref: ReferenceByName<CompanyType>, override val position: Position? = null) : EntityTypeRef(position) {
     override fun isCompany() = true
+    override fun companyType() = ref.referred!!
 }
 
 data class CompanyType(override val name: String,
@@ -167,7 +169,7 @@ data class Tax(override val name: String,
     fun isApplicableTo(entity: Entity): Boolean {
         return when {
             this.target.isPerson() -> entity.isPerson
-            this.target.isCompany() -> entity.isCompany && entity.name == (this.target as CompanyTypeRef).ref.name
+            this.target.isCompany() -> entity.isCompany && entity.type.companyType() == (this.target as CompanyTypeRef).ref.referred!!
             else -> TODO()
         }
     }
@@ -251,3 +253,5 @@ data class WhenExprClause(val condition: Expression, val value: Expression, over
 data class EqualityExpr(override val left: Expression, override val right: Expression, override val position: Position? = null) : BinaryExpression(left, right, position)
 
 data class BracketsApplicationExpr(val brackets: Expression, val value: Expression, override val position: Position? = null) : Expression(position)
+
+data class PercentageOfExpr(val percentage: Double, val value: Expression, override val position: Position? = null) : Expression(position)

@@ -73,7 +73,7 @@ expression : left=expression PLUS right=expression #sumExpr
            | fieldName=ID OF expression #fieldAccessExpr
            | valueInTime+ #timeExpr
            | SHARE OF toShare=expression (FOR owner=expression)? #shareExpr
-           | PERCLIT OF baseValue=expression #percentageExpr
+           | percentage=PERCLIT OF baseValue=expression #percentageExpr
            | clauses+=whenClause (COMMA clauses+=whenClause)* #whenExpr
            | left=expression EQUAL right=expression #equality
            | BRACKETS entries+=bracketEntry (COMMA entries+=bracketEntry)* #bracketsExpr
