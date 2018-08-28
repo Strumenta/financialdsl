@@ -55,6 +55,33 @@ class TaxesTest : AbstractTest(){
         assertEquals(expectedValue, tax.amount)
     }
 
+    fun assertIres(grossProfit: String, expectedValue: Double, year: Int) {
+        val model = Parser().parse("""
+            company type SRL {
+                gross_profit is amount
+                net_production is amount = gross_profit + personnel_costs
+                personnel_costs is amount
+            }
+
+            Strumenta is SRL {
+                city = Torino
+                owners = [Federico at 66%, Gabriele at 34%]
+                gross_profit is amount = $grossProfit
+            }
+
+            tax IRES on SRL {
+                // In maniera grossolana ma abbastanza precisa si puo' calcolare che l'utile tassabile e' circa il 20% piu' grande
+                // dell'utile lordo.
+                taxable =  120% of gross_profit
+                        rate = @{before 2017} 27.5%
+                               @{since 2017} 24%
+            }""".trimIndent())
+        assertEquals(true, model.correct, model.errors.toString())
+        val res = model.ast!!.evaluate(YearlyPeriodValue(year), emptyMap())
+        val tax = res.tax("Federico", "IRPEF")
+        assertEquals(expectedValue, tax.amount)
+    }
+
     @Test
     fun irpefWithZeroIncome() {
         assertIrpef("0", 0.0)
@@ -71,4 +98,23 @@ class TaxesTest : AbstractTest(){
         assertIrpef("90,000", 34922.54)
     }
 
+    @Test
+    fun iresWithProfitZeroIn2016() {
+        assertIres("0", 0.0, 2016)
+    }
+
+    @Test
+    fun iresWithProfitZeroIn2017() {
+        assertIres("0", 0.0, 2017)
+    }
+
+    @Test
+    fun iresWithProfitGreaterThanZeroIn2016() {
+        assertIres("100,000", 27500.0, 2016)
+    }
+
+    @Test
+    fun iresWithProfitGreaterThanZeroIn2017() {
+        assertIres("100,000", 24000.0, 2017)
+    }
 }
