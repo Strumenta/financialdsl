@@ -3,7 +3,9 @@ package com.strumenta.financialdsl
 import com.strumenta.financialdsl.interpreter.DecimalValue
 import com.strumenta.financialdsl.interpreter.YearlyPeriodValue
 import com.strumenta.financialdsl.interpreter.evaluate
+import com.strumenta.financialdsl.model.FinancialDSLFile
 import com.strumenta.financialdsl.model.Parser
+import com.strumenta.financialdsl.model.ParsingResult
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -57,33 +59,13 @@ class TaxesTest : AbstractTest(){
     }
 
     fun assertIresAmount(grossProfit: String, expectedValue: Double, year: Int) {
-        val model = Parser().parse("""
-            company type SRL {
-                gross_profit is amount
-                net_production is amount = gross_profit + personnel_costs
-                personnel_costs is amount
-            }
-
-            Strumenta is SRL {
-                city = Torino
-                owners = [Federico at 66%, Gabriele at 34%]
-                gross_profit is amount = $grossProfit
-            }
-
-            tax IRES on SRL {
-                // In maniera grossolana ma abbastanza precisa si puo' calcolare che l'utile tassabile e' circa il 20% piu' grande
-                // dell'utile lordo.
-                taxable =  120% of gross_profit
-                rate = @{before 2017} 27.5%
-                       @{since 2017} 24%
-            }""".trimIndent())
-        assertEquals(true, model.correct, model.errors.toString())
+        val model = iresModel(grossProfit)
         val res = model.ast!!.evaluate(YearlyPeriodValue(year), emptyMap())
         val tax = res.tax("Strumenta", "IRES")
         assertEquals(expectedValue, tax.amount)
     }
 
-    fun assertIresTaxable(grossProfit: String, expectedValue: Double, year: Int) {
+    private fun iresModel(grossProfit: String) : ParsingResult<FinancialDSLFile> {
         val model = Parser().parse("""
             company type SRL {
                 gross_profit is amount
@@ -105,9 +87,21 @@ class TaxesTest : AbstractTest(){
                        @{since 2017} 24%
             }""".trimIndent())
         assertEquals(true, model.correct, model.errors.toString())
+        return model
+    }
+
+    fun assertIresTaxable(grossProfit: String, expectedValue: Double, year: Int) {
+        val model = iresModel(grossProfit)
         val res = model.ast!!.evaluate(YearlyPeriodValue(year), emptyMap())
         val tax = res.tax("Strumenta", "IRES")
-        assertEquals(expectedValue, (tax.get("taxable") as DecimalValue).value)
+        assertEquals(expectedValue, tax.get("taxable").toDecimal().value)
+    }
+
+    fun assertIresGrossProfit(grossProfit: String, expectedValue: Double, year: Int) {
+        val model = iresModel(grossProfit)
+        val res = model.ast!!.evaluate(YearlyPeriodValue(year), emptyMap())
+        val tax = res.tax("Strumenta", "IRES")
+        assertEquals(expectedValue, tax.get("gross_profit").toDecimal().value)
     }
 
     @Test
@@ -138,12 +132,12 @@ class TaxesTest : AbstractTest(){
 
     @Test
     fun iresAmountWithProfitGreaterThanZeroIn2016() {
-        assertIresAmount("100,000", 27500.0, 2016)
+        assertIresAmount("100,000", 33000.0, 2016)
     }
 
     @Test
     fun iresAmountWithProfitGreaterThanZeroIn2017() {
-        assertIresAmount("100,000", 24000.0, 2017)
+        assertIresAmount("100,000", 28800.0, 2017)
     }
 
     @Test
@@ -164,5 +158,10 @@ class TaxesTest : AbstractTest(){
     @Test
     fun iresTaxableWithProfitGreaterThanZeroIn2017() {
         assertIresTaxable("100,000", 120000.0, 2017)
+    }
+
+    @Test
+    fun iresGrossProfitWithProfitZeroIn2016() {
+        assertIresGrossProfit("0", 0.0, 2016)
     }
 }

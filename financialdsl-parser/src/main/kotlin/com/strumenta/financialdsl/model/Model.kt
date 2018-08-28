@@ -185,7 +185,7 @@ data class Tax(override val name: String,
     }
 
     fun hasField(name: String) : Boolean = fields.firstOrNull { it.name == name } != null
-    fun field(name: String) : EntityField = fields.firstOrNull { it.name == name } ?: throw IllegalArgumentException("Cannot find field $name in entity ${this.name}")
+    fun field(name: String) : EntityField = fields.firstOrNull { it.name == name } ?: throw IllegalArgumentException("Cannot find field $name in tax ${this.name}")
 
     override fun candidatesForValues(): List<Named> {
         return fields.map { TaxFieldRef(name, it.name) }

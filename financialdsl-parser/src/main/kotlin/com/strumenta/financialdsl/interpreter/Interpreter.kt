@@ -241,7 +241,7 @@ fun multiplyValues(valueA: Value, valueB: Value) : Value {
             DecimalValue(valueA.value * valueB.value.div(100.0))
         }
         valueA is DecimalValue && valueB is IntValue -> {
-            multiplyValues(valueA.toDecimal(), valueA.toDecimal())
+            multiplyValues(valueA.toDecimal(), valueB.toDecimal())
         }
         valueA is DecimalValue && valueB is DecimalValue -> {
             DecimalValue(valueA.value * valueB.value)

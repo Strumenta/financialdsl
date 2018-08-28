@@ -112,8 +112,13 @@ private fun EntityField.evaluateAsSum(entityName: String, ctx: EvaluationContext
 
 fun Tax.evaluate(entityName: String, ctx: EvaluationContext, period: PeriodValue): TaxValues {
     val fieldEvaluator : (String) -> Value = { fieldName ->
-        val field = ctx.file.tax(this.name).field(fieldName)
-        field.evaluate(this.name, ctx.inEntity(ctx.file.entity(entityName)), period)
+        if (ctx.file.tax(this.name).hasField(fieldName)) {
+            val field = ctx.file.tax(this.name).field(fieldName)
+            field.evaluate(this.name, ctx.inEntity(ctx.file.entity(entityName)), period)
+        } else {
+            val field = ctx.file.entity(entityName).field(fieldName)
+            field.evaluate(this.name, ctx, period)
+        }
     }
     return TaxValues(ctx, this.name, entityName, fieldEvaluator)
 }
@@ -190,7 +195,9 @@ fun Expression.evaluate(ctx: EvaluationContext, period: PeriodValue): Value {
             return bracketValue.applyForAmount(amount)
         }
         is PercentageOfExpr -> {
-            return multiplyValues(DecimalValue(this.percentage/100.0), this.value.evaluate(ctx, period))
+            val a = DecimalValue(this.percentage/100.0)
+            val b = this.value.evaluate(ctx, period)
+            return multiplyValues(a, b)
         }
         else -> TODO(this.javaClass.canonicalName)
     }
