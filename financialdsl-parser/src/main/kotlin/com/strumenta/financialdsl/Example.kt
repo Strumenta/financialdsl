@@ -45,13 +45,19 @@ Gabriele is person {
 Strumenta is SRL {
     city = Torino
     owners = [Federico at 66%, Gabriele at 34%]
-    gross_profit is amount <- parameter
+    costs_beside_personnel = 25K
+    costs = costs_beside_personnel + personnel_costs
+    revenues = 150K
+    pre_tax_profit = revenues - costs
+    profit = pre_tax_profit - IRES - IRAP
+    //gross_profit is amount <- parameter
     personnel_costs is amount <- sum
     net_profit = 500 -> contributes to income of owners
+
 }
 
 tax IRAP on SRL {
-	taxable = net_production
+	taxable = pre_tax_profit + personnel_costs
 	rate = when region=Piedmont 3.9%
 }
 
@@ -78,6 +84,21 @@ tax IRPEF on person {
 											      [to 55K] -> 2.75%,
 											      [to 75K] -> 3.32%,
 											      [above]  -> 3.33%
+}
+
+pension contribution InpsTerziario paid by employee {
+    considered_salary = (taxable of IRES for employer - amount of IRES for employer - amount of IRAP for employer) by share of employeer of employee
+    rate = brackets [to 46,123] -> 22.74%,
+                      [to 76,872] -> 23.74%,
+					  [above]     -> 0%
+    amount = (rate for considered_salary) with minimum 3.535,61
+}
+
+pension contribution InpsGLA paid by employer 2/3 and employee 1/3 {
+   considered_salary = gross_compensation of employee
+    rate = brackets [to 100,323] -> 27.72%,
+			        [above]      -> 0%
+    amount = rate for considered_salary
 }
 """
 

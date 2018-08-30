@@ -1,6 +1,5 @@
 package com.strumenta.financialdsl
 
-import com.strumenta.financialdsl.model.Parser
 import com.strumenta.kotlinmultiplatform.BitSet
 import org.antlr.v4.kotlinruntime.*
 import org.antlr.v4.kotlinruntime.atn.ATNConfigSet
@@ -8,9 +7,18 @@ import org.antlr.v4.kotlinruntime.dfa.DFA
 import kotlin.test.fail
 
 abstract class AbstractTest {
-    protected fun assertParsedWithoutErrors(exampleName: String) : FinancialDSLParser.FinancialDSLFileContext {
+
+    protected fun assertExampleParsedWithoutErrors(exampleName: String) : FinancialDSLParser.FinancialDSLFileContext {
         val inputStream = LexingTest::class.java.getResourceAsStream("/$exampleName.fin")
         val input = CharStreams.fromStream(inputStream)
+        return assertParsedWithoutErrors(input)
+    }
+
+    protected fun assertCodeParsedWithoutErrors(code: String) : FinancialDSLParser.FinancialDSLFileContext {
+        return assertParsedWithoutErrors(CharStreams.fromString(code))
+    }
+
+    private fun assertParsedWithoutErrors(input: CharStream) : FinancialDSLParser.FinancialDSLFileContext {
         val lexer = FinancialDSLLexer(input)
         val errorListener = object : ANTLRErrorListener {
             override fun reportAmbiguity(recognizer: org.antlr.v4.kotlinruntime.Parser, dfa: DFA, startIndex: Int, stopIndex: Int, exact: Boolean, ambigAlts: BitSet, configs: ATNConfigSet) {
