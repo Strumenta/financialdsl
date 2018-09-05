@@ -5,11 +5,11 @@ import kotlin.test.Test
 class PensionsTest : AbstractTest(){
 
     private val terziarioExample = """
-        pension contribution InpsTerziario paid by employee {
-            considered_salary = (taxable of IRES for employer - amount of IRES for employer - amount of IRAP for employer) by share of employeer of employee
+        pension contribution InpsTerziario paid by owner {
+            considered_salary = (taxable of IRES for employer - amount of IRES for employer - amount of IRAP for employer) by ownership share
             rate = brackets [to 46,123] -> 22.74%,
-                              [to 76,872] -> 23.74%,
-                              [above]     -> 0%
+                            [to 76,872] -> 23.74%,
+                            [above]     -> 0%
             amount = (rate for considered_salary) with minimum 3.535,61
         }
     """.trimIndent()
